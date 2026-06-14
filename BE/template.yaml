@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Event Management Local API
+
+Resources:
+  EventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventLambda
+      CodeUri: src/Functions/EventManagement.EventLambda/
+      Handler: EventManagement.EventLambda::EventManagement.EventLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Events:
+        GetEvents:
+          Type: Api
+          Properties:
+            Path: /events
+            Method: get

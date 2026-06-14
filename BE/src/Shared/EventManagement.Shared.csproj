@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="4.0.9.5" />
+    <PackageReference Include="AWSSDK.Core" Version="4.0.9.2" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.21.3" />
+    <PackageReference Include="AWSSDK.EventBridge" Version="4.0.6.6" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.24.4" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="4.0.3.4" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.3.4" />
+    <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="QuestPDF" Version="2026.6.0" />
+  </ItemGroup>
+
+</Project>
