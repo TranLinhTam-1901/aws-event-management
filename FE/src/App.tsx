@@ -1,7 +1,12 @@
-import EventTestPage from "./pages/public/EventTestPage";
+import AppRoutes from "./routes/AppRoutes";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
-  return <EventTestPage />;
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
 }
 
 export default App;

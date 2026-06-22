@@ -8,6 +8,9 @@ BE/**/*.user
 BE/**/*.suo
 BE/**/*.rsuser
 BE/**/*.csproj.user
+BE/**/*.dll
+BE/**/*.pdb
+BE/**/publish/
 
 # NuGet
 *.nupkg
@@ -19,6 +22,10 @@ BE/**/*.csproj.user
 .aws-sam/
 BE/**/.aws-sam/
 samconfig.toml
+BE/**/*.zip
+packaged.yaml
+packaged-template.yaml
+*.changeset.json
 
 # AWS credentials - never commit
 .aws/
@@ -57,6 +64,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # =====================
+# Test/debug artifacts (có thể chứa token/dữ liệu nhạy cảm)
+# =====================
+*.token
+test-response*.json
+
+# =====================
 # IDE / Editor
 # =====================
 .vscode/
@@ -70,7 +83,6 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
-
 
 # Docker
 .docker/

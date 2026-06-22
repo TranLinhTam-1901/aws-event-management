@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C8E42992-5E42-0C2B-DBFE-AA848D06431C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Shared", "src\Shared\EventManagement.Shared\EventManagement.Shared.csproj", "{1A873D5D-63D7-4079-9F89-CF2283EE134E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Shared", "src\Shared\EventManagement.Shared.csproj", "{1A873D5D-63D7-4079-9F89-CF2283EE134E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{8ACE4114-8886-9720-B387-343844A27A5F}"
 EndProject

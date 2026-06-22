@@ -1,17 +1,16 @@
 using EventManagement.Shared.Models.Enums;
 
-namespace EventManagement.Shared.Models
+namespace EventManagement.Shared.Models.Users;
+
+public class UserProfile
 {
-    public class UserProfileItem
-    {
-        public string UserId { get; set; }
-        public string CognitoSub { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Organization { get; set; }
-        public UserRole Role { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
+    public string UserId { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string AvatarUrl { get; set; } = string.Empty;
+    public UserRole Role { get; set; } = UserRole.USER;
+    public UserStatus Status { get; set; } = UserStatus.ACTIVE;
+    public string CreatedAt { get; set; } = string.Empty;
+    public string UpdatedAt { get; set; } = string.Empty;
+    public string LastLoginAt { get; set; } = string.Empty;
 }
