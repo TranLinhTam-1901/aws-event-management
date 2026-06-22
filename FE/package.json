@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.5",
+    "@aws-amplify/ui-react": "^6.15.4",
     "@reduxjs/toolkit": "^2.12.0",
+    "@tailwindcss/vite": "^4.3.1",
     "antd": "^6.4.4",
     "aws-amplify": "^6.18.0",
     "axios": "^1.17.0",
@@ -24,7 +26,8 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.17.0",
     "recharts": "^3.8.1",
-    "sweetalert2": "^11.26.25"
+    "sweetalert2": "^11.26.25",
+    "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

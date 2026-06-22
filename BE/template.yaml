@@ -2,6 +2,32 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Event Management Local API
 
+# ============================================
+# THÊM MỚI: Globals block với Cognito Authorizer
+# Áp dụng cho TẤT CẢ API trong template này
+# ============================================
+Globals:
+  Api:
+    # ============================================
+    # THÊM MỚI: CORS config để xử lý preflight OPTIONS request
+    # Bắt buộc phải có khi FE (localhost:5173 hoặc domain khác)
+    # gọi API Gateway ở domain execute-api.amazonaws.com
+    # ============================================
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+      # Khi đã có domain FE thật (deploy lên Vercel/Amplify...),
+      # nên đổi '*' thành domain cụ thể để bảo mật hơn, ví dụ:
+      # AllowOrigin: "'https://your-fe-domain.com'"
+    Auth:
+      DefaultAuthorizer: CognitoAuthorizer
+      AddDefaultAuthorizerToCorsPreflight: false
+      Authorizers:
+        CognitoAuthorizer:
+          UserPoolArn: arn:aws:cognito-idp:ap-southeast-2:133375667858:userpool/ap-southeast-2_oCPOcdOZg
+          # Ví dụ: arn:aws:cognito-idp:ap-southeast-2:133375667858:userpool/ap-southeast-2_AbCdEfGhI
+
 Resources:
   EventFunction:
     Type: AWS::Serverless::Function
@@ -18,3 +44,36 @@ Resources:
           Properties:
             Path: /events
             Method: get
+            # Auth sẽ tự dùng DefaultAuthorizer (CognitoAuthorizer) từ Globals
+            # Nếu route này cần PUBLIC (không cần login), dùng:
+            # Auth:
+            #   Authorizer: NONE
+
+  UserProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UserProfileLambda
+      CodeUri: src/Functions/EventManagement.UserProfileLambda/
+      Handler: EventManagement.UserProfileLambda::EventManagement.UserProfileLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          USER_TABLE_NAME: EventManagementUsers
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: EventManagementUsers
+      Events:
+        InitProfile:
+          Type: Api
+          Properties:
+            Path: /profile/init
+            Method: post
+            # Tự dùng CognitoAuthorizer từ Globals - bắt buộc phải có JWT hợp lệ
+        GetProfile:
+          Type: Api
+          Properties:
+            Path: /profile/me
+            Method: get
+            # Tự dùng CognitoAuthorizer từ Globals - bắt buộc phải có JWT hợp lệ
