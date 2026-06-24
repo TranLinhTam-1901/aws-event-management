@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PublicLayout } from "../../components/layout/PublicLayout";
-import { cognitoAuthService } from "../../services/cognitoAuthService";
 import { useAuth } from "../../context/AuthContext";
-import userProfileService from "../../services/userProfileService"; // THÊM MỚI
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { checkAuth } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -45,48 +42,8 @@ export const LoginPage: React.FC = () => {
     try {
       setLoading(true);
 
-      const result = await cognitoAuthService.login(email, password);
+      await login(email, password, remember);
 
-      console.log("Login success:", result);
-
-      const tokens = await cognitoAuthService.getAuthTokens();
-
-      console.log("Access Token:", tokens.accessToken);
-      console.log("ID Token:", tokens.idToken);
-
-      if (tokens.accessToken) {
-        localStorage.setItem("accessToken", tokens.accessToken);
-      }
-
-      if (tokens.idToken) {
-        localStorage.setItem("idToken", tokens.idToken);
-      }
-
-      // ============================================
-      // THÊM MỚI: Đồng bộ user vào DynamoDB qua BE.
-      // Phải gọi SAU khi đã lưu idToken vào localStorage,
-      // vì axiosInstance đọc idToken từ đó để gắn vào header.
-      // ============================================
-      let userRole = 0; // Khởi tạo mặc định là USER (0)
-      try {
-        const initResult = await userProfileService.initProfile();
-        console.log("Profile init result:", initResult);
-        
-        // Bóc tách lấy role thực tế từ API sau khi normalize
-        userRole = initResult.profile.role; 
-      } catch (initError) {
-        // Không chặn luồng login nếu init profile lỗi, nhưng cần log lại để biết BE có vấn đề.
-        console.error("Init profile error:", initError);
-      }
-
-      // Cập nhật auth context
-      await checkAuth();
-
-     if (userRole === 1) {
-        navigate("/admin/dashboard", { replace: true }); // Chuyển đến trang quản trị nếu là ADMIN
-      } else {
-        navigate("/", { replace: true });                // Chuyển về trang chủ nếu là USER
-      }
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");

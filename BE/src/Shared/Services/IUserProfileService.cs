@@ -12,4 +12,7 @@ public interface IUserProfileService
     );
 
     Task<UserProfileDto?> GetMyProfileAsync(string userId);
+
+    Task<UserProfileDto> UpdateProfileAsync(string userId, UpdateProfileRequestDto dto);
+    Task<GetAvatarUploadUrlResponseDto> GenerateAvatarUploadUrlAsync(string userId, string contentType);
 }

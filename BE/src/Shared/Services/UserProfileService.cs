@@ -7,10 +7,14 @@ namespace EventManagement.Shared.Services;
 public class UserProfileService : IUserProfileService
 {
     private readonly IUserProfileRepository _userProfileRepository;
+    private readonly Amazon.S3.IAmazonS3 _s3Client;
+    private readonly string _bucketName;
 
-    public UserProfileService(IUserProfileRepository userProfileRepository)
+    public UserProfileService(IUserProfileRepository userProfileRepository, Amazon.S3.IAmazonS3 s3Client = null!)
     {
         _userProfileRepository = userProfileRepository;
+        _s3Client = s3Client ?? new Amazon.S3.AmazonS3Client();
+        _bucketName = Environment.GetEnvironmentVariable("AVATAR_BUCKET_NAME") ?? string.Empty;
     }
 
     public async Task<InitProfileResponseDto> InitProfileAsync(
@@ -66,5 +70,55 @@ public class UserProfileService : IUserProfileService
     public async Task<UserProfileDto?> GetMyProfileAsync(string userId)
     {
         return await _userProfileRepository.GetByUserIdAsync(userId);
+    }
+
+
+    public async Task<UserProfileDto> UpdateProfileAsync(string userId, UpdateProfileRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.FullName))
+        {
+            throw new ArgumentException("Full name cannot be empty.");
+        }
+
+        var now = DateTime.UtcNow.ToString("O");
+        
+        // Gọi xuống repository thực hiện UpdateItem trong DynamoDB
+        await _userProfileRepository.UpdateProfileAsync(userId, dto.FullName, dto.AvatarUrl, now);
+
+        // Lấy lại dữ liệu mới nhất để trả về cho Client
+        var updatedProfile = await _userProfileRepository.GetByUserIdAsync(userId);
+        return updatedProfile ?? throw new Exception("Profile not found after update.");
+    }
+
+    // ==========================================
+    // THÊM MỚI: Sinh Presigned URL đẩy trực tiếp lên S3
+    // ==========================================
+    public async Task<GetAvatarUploadUrlResponseDto> GenerateAvatarUploadUrlAsync(string userId, string contentType)
+    {
+        // Xác định phần mở rộng dựa trên contentType (hoặc mặc định .png)
+        var ext = contentType.Contains("jpeg") || contentType.Contains("jpg") ? "jpg" : "png";
+        
+        // Cấu trúc file key phân tách theo userId để tránh ghi đè chéo file của nhau
+        var fileKey = $"avatars/{userId}/avatar_{DateTime.UtcNow.Ticks}.{ext}";
+
+        var request = new Amazon.S3.Model.GetPreSignedUrlRequest
+        {
+            BucketName = _bucketName,
+            Key = fileKey,
+            Verb = Amazon.S3.HttpVerb.PUT, // Bắt buộc trùng khớp phương thức PUT ở FE
+            Expires = DateTime.UtcNow.AddMinutes(15), // URL có hiệu lực trong 15p
+            ContentType = contentType
+        };
+
+        var uploadUrl = await _s3Client.GetPreSignedURLAsync(request);
+        
+        // Trả về url sạch (không chứa tham số query) để lưu vào DB sau khi upload xong
+        var finalAvatarUrl = $"https://{_bucketName}.s3.amazonaws.com/{fileKey}";
+
+        return new GetAvatarUploadUrlResponseDto
+        {
+            UploadUrl = uploadUrl,
+            AvatarUrl = finalAvatarUrl
+        };
     }
 }
