@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+import { fetchAuthSession } from 'aws-amplify/auth';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
@@ -12,8 +12,9 @@ const axiosInstance = axios.create({
 
 // Add request interceptor to include JWT token
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('idToken');
+    async (config) => {
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,9 +28,14 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
+
       localStorage.removeItem('idToken');
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('remember_me');
+
+      sessionStorage.removeItem('idToken');
+      sessionStorage.removeItem('accessToken');
+
       window.location.href = '/login';
     }
     return Promise.reject(error);

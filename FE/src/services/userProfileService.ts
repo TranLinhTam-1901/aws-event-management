@@ -1,4 +1,6 @@
 import axiosInstance from './axiosInstance';
+import axios from 'axios';
+
 
 export interface BackendUserProfile {
   UserId: string;
@@ -34,7 +36,12 @@ export interface UserProfile {
 
 export interface UserProfileUpdate {
   fullName: string;
-  // Bạn có thể mở rộng thêm các trường update khác nếu cần dựa theo nghiệp vụ sau này
+  avatarUrl: string;
+}
+
+export interface AvatarUploadUrlResponse {
+  uploadUrl: string;
+  avatarUrl: string;
 }
 
 export interface InitProfileResponse {
@@ -74,13 +81,32 @@ class UserProfileService {
     return this.normalizeProfile(response.data);
   }
 
+  async updateUserProfile(data: UserProfileUpdate): Promise<UserProfile> {
+    const response = await axiosInstance.put('/profile/me', data);
+    return this.normalizeProfile(response.data.profile);
+  }
+
+  async getAvatarUploadUrl(contentType: string): Promise<AvatarUploadUrlResponse> {
+    const response = await axiosInstance.get('/profile/avatar-upload-url', {
+      params: { contentType }
+    });
+  
+    return {
+      uploadUrl: response.data.UploadUrl,
+      avatarUrl: response.data.AvatarUrl
+    };
+  }
+
+  async uploadAvatarToS3(presignedUrl: string, file: File): Promise<void> {
+    await axios.put(presignedUrl, file, {
+      headers: {
+        'Content-Type': file.type 
+      }
+    });
+  }
+
 
   //Chưa dùng 
-  // async updateUserProfile(data: UserProfileUpdate): Promise<UserProfile> {
-  //   const response = await axiosInstance.put('/users/me', data);
-  //   return response.data;
-  // }
-
   // async getAllUsers(): Promise<UserProfile[]> {
   //   const response = await axiosInstance.get('/admin/users');
   //   return response.data;

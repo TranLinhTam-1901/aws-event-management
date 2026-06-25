@@ -60,6 +60,14 @@ public class Function
             {
                 return await HandleGetProfile(claims, context);
             }
+            else if (request.HttpMethod == "PUT" && request.Path == "/profile/me")
+            {
+                return await HandleUpdateProfile(request, claims, context);
+            }
+            else if (request.HttpMethod == "GET" && request.Path == "/profile/avatar-upload-url")
+            {
+                return await HandleGetAvatarUploadUrl(request, claims, context);
+            }
 
             return new APIGatewayProxyResponse
             {
@@ -179,6 +187,95 @@ public class Function
         }
     }
 
+
+
+    /// <summary>
+    /// Handle PUT /profile/me - Update user's profile info (FullName, AvatarUrl)
+    /// </summary>
+    private async Task<APIGatewayProxyResponse> HandleUpdateProfile(
+        APIGatewayProxyRequest request,
+        JwtClaims claims,
+        ILambdaContext context
+    )
+    {
+        try
+        {
+            context.Logger.LogLine($"Updating profile for user: {claims.UserId}");
+
+            if (string.IsNullOrEmpty(request.Body))
+            {
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 400,
+                    Headers = CorsHeaders(),
+                    Body = JsonSerializer.Serialize(new { message = "Missing request body" })
+                };
+            }
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var updateDto = JsonSerializer.Deserialize<EventManagement.Shared.DTOs.Users.UpdateProfileRequestDto>(request.Body, options);
+
+            if (updateDto == null)
+            {
+                return new APIGatewayProxyResponse { StatusCode = 400, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Invalid request body format" }) };
+            }
+
+            var result = await _userProfileService.UpdateProfileAsync(claims.UserId, updateDto);
+
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 200,
+                Headers = CorsHeaders(),
+                Body = JsonSerializer.Serialize(new { message = "Profile updated successfully", profile = result })
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new APIGatewayProxyResponse { StatusCode = 400, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = ex.Message }) };
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogLine($"Error updating profile: {ex.Message}");
+            return new APIGatewayProxyResponse { StatusCode = 500, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Failed to update profile" }) };
+        }
+    }
+
+    /// <summary>
+    /// Handle GET /profile/avatar-upload-url - Generate S3 Presigned URL for Avatar upload
+    /// </summary>
+    private async Task<APIGatewayProxyResponse> HandleGetAvatarUploadUrl(
+        APIGatewayProxyRequest request,
+        JwtClaims claims,
+        ILambdaContext context
+    )
+    {
+        try
+        {
+            context.Logger.LogLine($"Generating avatar upload URL for user: {claims.UserId}");
+
+            // Đọc QueryString để lấy file content-type (ví dụ: image/png, image/jpeg) từ client gửi lên nếu cần
+            request.QueryStringParameters.TryGetValue("contentType", out var contentType);
+            if (string.IsNullOrEmpty(contentType))
+            {
+                contentType = "image/png"; // Default fallback
+            }
+
+             var response = await _userProfileService.GenerateAvatarUploadUrlAsync(claims.UserId, contentType);
+
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 200,
+                Headers = CorsHeaders(),
+                Body = JsonSerializer.Serialize(response)
+            };
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogLine($"Error generating presigned URL: {ex.Message}");
+            return new APIGatewayProxyResponse { StatusCode = 500, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Failed to generate upload URL" }) };
+        }
+    }
+
     /// <summary>
     /// Extract JWT claims from API Gateway request context.
     /// Cognito Authorizer (COGNITO_USER_POOLS) đưa claims vào
@@ -243,24 +340,24 @@ public class Function
     }
 }
 
-/// <summary>
-/// DTO for extracted JWT claims from Cognito Authorizer
-/// </summary>
-public class JwtClaims
-{
-    public string UserId { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-
     /// <summary>
-    /// Danh sách group user thuộc về, lấy từ claim "cognito:groups".
-    /// Rỗng nếu user không thuộc group nào (trường hợp bình thường,
-    /// không phải lỗi) - khi đó coi là user thường.
+    /// DTO for extracted JWT claims from Cognito Authorizer
     /// </summary>
-    public List<string> Groups { get; set; } = new();
+    public class JwtClaims
+    {
+        public string UserId { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
-    /// <summary>
-    /// true nếu user thuộc group "Admins"
-    /// </summary>
-    public bool IsAdmin => Groups.Contains("Admins");
-}
+        /// <summary>
+        /// Danh sách group user thuộc về, lấy từ claim "cognito:groups".
+        /// Rỗng nếu user không thuộc group nào (trường hợp bình thường,
+        /// không phải lỗi) - khi đó coi là user thường.
+        /// </summary>
+        public List<string> Groups { get; set; } = new();
+
+        /// <summary>
+        /// true nếu user thuộc group "Admins"
+        /// </summary>
+        public bool IsAdmin => Groups.Contains("Admins");
+    }

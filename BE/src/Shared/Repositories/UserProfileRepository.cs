@@ -70,4 +70,30 @@ public class UserProfileRepository : IUserProfileRepository
             }
         });
     }
+
+    public async Task UpdateProfileAsync(string userId, string fullName, string avatarUrl, string updatedAt)
+    {
+        await _dynamoDb.UpdateItemAsync(new UpdateItemRequest
+        {
+            TableName = _tableName,
+            Key = new Dictionary<string, AttributeValue>
+            {
+                [UserProfileFields.UserId] = new AttributeValue { S = userId }
+            },
+            // Chỉ cập nhật các trường liên quan đến thông tin cá nhân được phép thay đổi
+            UpdateExpression = "SET #fullName = :fullName, #avatarUrl = :avatarUrl, #updatedAt = :updatedAt",
+            ExpressionAttributeNames = new Dictionary<string, string>
+            {
+                ["#fullName"] = UserProfileFields.FullName,
+                ["#avatarUrl"] = UserProfileFields.AvatarUrl,
+                ["#updatedAt"] = UserProfileFields.UpdatedAt
+            },
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                [":fullName"] = new AttributeValue { S = fullName },
+                [":avatarUrl"] = new AttributeValue { S = avatarUrl },
+                [":updatedAt"] = new AttributeValue { S = updatedAt }
+            }
+        });
+    }
 }

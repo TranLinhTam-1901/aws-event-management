@@ -60,10 +60,15 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+
           USER_TABLE_NAME: EventManagementUsers
+          AVATAR_BUCKET_NAME: !Ref EventManagementUserAvatarsBucket
       Policies:
         - DynamoDBCrudPolicy:
             TableName: EventManagementUsers
+
+        - S3CrudPolicy:
+            BucketName: !Ref EventManagementUserAvatarsBucket
       Events:
         InitProfile:
           Type: Api
@@ -76,4 +81,31 @@ Resources:
           Properties:
             Path: /profile/me
             Method: get
-            # Tự dùng CognitoAuthorizer từ Globals - bắt buộc phải có JWT hợp lệ
+        # Tự dùng CognitoAuthorizer từ Globals - bắt buộc phải có JWT hợp lệ
+        UpdateProfile:
+          Type: Api
+          Properties:
+            Path: /profile/me
+            Method: put
+        # === THÊM MỚI ROUTE LẤY PRESIGNED URL ===
+        GetAvatarUploadUrl:
+          Type: Api
+          Properties:
+            Path: /profile/avatar-upload-url
+            Method: get
+            
+  EventManagementUserAvatarsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Bạn có thể đổi tên bucket tùy ý, hoặc để AWS tự sinh chuỗi random chống trùng lặp
+      BucketName: !Sub "event-management-user-avatars-${AWS::AccountId}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - PUT      # Bắt buộc phải có PUT để FE upload trực tiếp qua Presigned URL
+              - GET
+            AllowedOrigins:
+              - '*'      # Khi lên production, nên giới hạn lại domain cụ thể của FE
+            MaxAge: 3000

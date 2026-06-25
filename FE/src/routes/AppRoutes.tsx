@@ -11,6 +11,7 @@ import { MyTicketsPage } from "../pages/user/MyTicketsPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AdminLayout } from "../components/layout/AdminLayout";
 import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage";
+import { UserProfilePage } from "../pages/user/UserProfilePage";
 
 function AppRoutes() {
   return (
@@ -26,10 +27,11 @@ function AppRoutes() {
           path="/reset-password"
           element={<ResetPasswordPage />}
         />
+        
 
       // Các route được bảo vệ chỉ có thể truy cập khi đã đăng nhập
           <Route element={<ProtectedRoute />}>
-            {/* <Route path="/profile" element={<ProfilePage />} /> */}
+            <Route path="/profile/me" element={<UserProfilePage />} />
             <Route path="/my-tickets" element={<MyTicketsPage />} />
           </Route>
 
