@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PublicLayout } from "../../components/layout/PublicLayout";
 import { cognitoAuthService } from "../../services/cognitoAuthService";
-
+import { signInWithRedirect } from "aws-amplify/auth";
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -82,6 +82,22 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+      try {
+        setErrorMessage("");
+        
+        // Chiến lược UX: Ép cứng trạng thái remember_me lưu xuống localStorage vật lý
+        // trước khi toàn bộ State của ứng dụng React bị hủy để điều hướng sang Google Domain.
+        localStorage.setItem('remember_me', 'true');
+        
+        // Kích hoạt lệnh chuyển hướng đến Identity Provider (Google) qua Cognito Hosted UI
+        await signInWithRedirect({ provider: 'Google' });
+      } catch (error) {
+        console.error("Google redirect login error:", error);
+        setErrorMessage("Không thể kết nối với dịch vụ đăng nhập Google.");
+      }
+    };
+
   return (
     <PublicLayout>
       <main className="min-h-[calc(100vh-64px)] bg-[#faf8ff] flex overflow-hidden">
@@ -99,6 +115,7 @@ export const RegisterPage: React.FC = () => {
 
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl border border-slate-300 bg-white text-slate-800 font-medium hover:bg-slate-50 transition"
             >
               <span className="text-lg font-bold text-blue-600">G</span>

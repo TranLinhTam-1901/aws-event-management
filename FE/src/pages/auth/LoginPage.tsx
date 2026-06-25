@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PublicLayout } from "../../components/layout/PublicLayout";
 import { useAuth } from "../../context/AuthContext";
+import { signInWithRedirect } from "aws-amplify/auth";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,6 +50,24 @@ export const LoginPage: React.FC = () => {
       setErrorMessage("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");
     } finally {
       setLoading(false);
+    }
+  };
+
+
+  // Logic xử lý đăng nhập bằng Google (OAuth 2.0 Chống State-loss)
+  const handleGoogleLogin = async () => {
+    try {
+      setErrorMessage("");
+      
+      // Chiến lược UX: Ép cứng trạng thái remember_me lưu xuống localStorage vật lý
+      // trước khi toàn bộ State của ứng dụng React bị hủy để điều hướng sang Google Domain.
+      localStorage.setItem('remember_me', 'true');
+      
+      // Kích hoạt lệnh chuyển hướng đến Identity Provider (Google) qua Cognito Hosted UI
+      await signInWithRedirect({ provider: 'Google' });
+    } catch (error) {
+      console.error("Google redirect login error:", error);
+      setErrorMessage("Không thể kết nối với dịch vụ đăng nhập Google.");
     }
   };
 
@@ -175,11 +194,14 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
+                onClick={handleGoogleLogin}
                 className="w-full py-4 px-6 bg-white border border-slate-300 text-slate-800 font-medium rounded-xl hover:bg-slate-50 active:scale-[0.98] transition flex items-center justify-center gap-3"
               >
                 <span className="text-lg font-bold text-blue-600">G</span>
                 Tiếp tục với Google
               </button>
+
+              
             </form>
 
             <p className="text-center text-sm text-slate-600">

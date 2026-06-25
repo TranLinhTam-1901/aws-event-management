@@ -2,13 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { cognitoAuthService } from "../services/cognitoAuthService";
 import type { UserProfile } from "../services/userProfileService";
 import userProfileService from "../services/userProfileService";
+import { Hub } from "aws-amplify/utils";
 
-// interface User {
-//   userId: string;
-//   username: string;
-//   email: string;
-//   name?: string;
-// }
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -107,8 +102,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+
+
+  
     useEffect(() => {
+
+      // 1. Đăng ký Hub Listener để bắt sự kiện đăng nhập thành công từ Google Redirect
+    const unsubscribe = Hub.listen("auth", async ({ payload }) => {
+      switch (payload.event) {
+        case "signedIn":
+          console.log("Hub: Google OAuth Sign-In thành công!");
+          try {
+            // Đồng bộ khởi tạo profile lên DynamoDB nếu đây là user Google mới
+            await userProfileService.initProfile();
+          } catch (initError) {
+            console.error("Init profile error during OAuth:", initError);
+          }
+          await checkAuth(); // Lấy profile mới nhất về set state cho React re-render
+          break;
+        case "signInWithRedirect_failure":
+          console.error("Hub: Lỗi trong quá trình redirect OAuth", payload.data);
+          setIsLoading(false);
+          break;
+      }
+    });
+
+
     const initAuth = async () => {
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasOauthCode = urlParams.has("code") || window.location.hash.includes("access_token");
+
+      if (hasOauthCode) {
+        // Nếu có 'code', tức là Amplify đang xử lý bắt tay đổi Token ngầm.
+        // Giữ isLoading = true và DỪNG LẠI, để Hub Listener phía trên lo nốt phần còn lại.
+        setIsLoading(true);
+        return;
+      }
+
       // Quét xem thực tế trong các kho có tồn tại dấu vết phiên đăng nhập của Amplify không
       const hasLocalAmplify = Object.keys(localStorage).some(k => k.includes("LastAuthUser"));
       const hasSessionAmplify = Object.keys(sessionStorage).some(k => k.includes("LastAuthUser"));
@@ -125,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await checkAuth();
     };
     initAuth();
+    return () => unsubscribe();
     }, []);
 
   return (
