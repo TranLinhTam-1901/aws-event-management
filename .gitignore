@@ -11,6 +11,8 @@ BE/**/*.csproj.user
 BE/**/*.dll
 BE/**/*.pdb
 BE/**/publish/
+BE/env.json
+
 
 # NuGet
 *.nupkg
