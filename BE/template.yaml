@@ -124,13 +124,18 @@ Resources:
           TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
           EVENT_TABLE_NAME: !Ref EventManagementEventsTable
           USER_TABLE_NAME: EventManagementUsers
+          NOTIFICATION_FUNCTION_NAME: "notification-lambda"
       Policies:
         # CẤP QUYỀN ĐỒNG THỜI CHO CẢ 2 BẢNG TẠI ĐÂY CHÍNH XÁC NÈ ÔNG:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventManagementEventsTable   # Để đọc thông tin Event và tăng số lượng vé nguyên tử
         - DynamoDBCrudPolicy:
             TableName: !Ref EventManagementTicketsTable  # Để tạo vé mới và Query tìm vé theo UserId
-
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:notification-lambda"
         - Statement:
               - Effect: Allow
                 Action:

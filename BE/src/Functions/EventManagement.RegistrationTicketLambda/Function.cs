@@ -6,6 +6,9 @@ using EventManagement.Shared.Services;
 using System.Text.Json;
 using EventManagement.Shared.DTOs.Tickets;
 using System.Net;
+using Amazon.Lambda;
+using Amazon.Lambda.Model;
+using Environment = System.Environment;
 // Assembly attribute để AWS Lambda biết cách serialize/deserialize JSON sang object .NET
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -23,6 +26,9 @@ public class Function
     private readonly IUserProfileService _userProfileService;
     private readonly string _userTableName;
 
+
+    private readonly IAmazonLambda _lambdaClient;
+    private readonly string _notificationFunctionName;
     public Function()
     {
         // Đọc tên bảng từ biến môi trường cấu hình trong template.yaml
@@ -39,7 +45,32 @@ public class Function
 
         var userProfileRepository = new UserProfileRepository(_dynamoDbClient, _userTableName);
         _userProfileService = new UserProfileService(userProfileRepository);
+
+         _lambdaClient = new AmazonLambdaClient();
+    _notificationFunctionName = Environment.GetEnvironmentVariable("NOTIFICATION_FUNCTION_NAME") ?? "notification-lambda";
+
+
     }
+
+    private async Task InvokeNotificationAsync(string action, object ticket, ILambdaContext context)
+{
+    try
+    {
+        var payload = JsonSerializer.Serialize(new { action, ticket });
+        await _lambdaClient.InvokeAsync(new InvokeRequest
+        {
+            FunctionName   = _notificationFunctionName,
+            InvocationType = InvocationType.Event,
+            Payload        = payload
+        });
+        context.Logger.LogLine($"[Notification] Invoke gửi mail thành công");
+    }
+    catch (Exception ex)
+    {
+        context.Logger.LogLine($"[Notification Warning] Invoke thất bại: {ex.Message}");
+    }
+}
+
 
     /// <summary>
     /// Hàm xử lý chính tiếp nhận Request từ API Gateway định tuyến cho module Vé
@@ -140,6 +171,14 @@ public class Function
             // 🔴 THAY THẾ: Truyền finalFullName (Đã đồng bộ) thay cho thuộc tính cũ từ token
             var ticketResult = await _ticketService.RegisterTicketAsync(eventId, userClaims.UserId, userClaims.Email, finalFullName);
             
+            await InvokeNotificationAsync("confirmation", new
+            {
+                Email     = ticketResult.UserEmail,
+                EventId   = ticketResult.EventId,
+                TicketId  = ticketResult.TicketId,
+                EventName = ticketResult.EventTitle
+            }, context);
+
             context.Logger.LogLine($"Đăng ký vé thành công! Mã vé: [{ticketResult.TicketId}]");
             return CreateResponse(HttpStatusCode.Created, ticketResult);
         }
@@ -265,6 +304,7 @@ public class Function
 }
 
 
+
 /// <summary>
 /// DTO chứa thông tin Token claims đồng bộ cấu trúc hệ thống
 /// </summary>
@@ -277,3 +317,4 @@ public class JwtClaims
 
     public bool IsAdmin => Groups.Contains("Admin");
 }
+
