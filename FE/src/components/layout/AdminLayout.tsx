@@ -17,10 +17,11 @@ export const AdminLayout: React.FC = () => {
   };
 
   // Các danh mục menu của Admin để map tự động
-  const menuItems = [
-    { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
-    { text: "Quản lý Sự kiện", icon: "calendar_month", path: "/admin/events" },
-  ];
+    const menuItems = [
+        { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
+        { text: "Quản lý Sự kiện", icon: "calendar_month", path: "/admin/events" },
+        { text: "Check-in QR", icon: "qr_code_scanner", path: "/admin/check-in" },
+    ];
 
   return (
     <div className="min-h-screen bg-slate-100 font-inter flex">

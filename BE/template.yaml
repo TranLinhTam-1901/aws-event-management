@@ -150,6 +150,47 @@ Resources:
           Properties:
             Path: /my-tickets
             Method: get
+             
+
+  AttendanceCertificateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AttendanceCertificateLambda
+      CodeUri: src/Functions/EventManagement.AttendanceCertificateLambda/
+      Handler: EventManagement.AttendanceCertificateLambda::EventManagement.AttendanceCertificateLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
+          ATTENDANCE_TABLE_NAME: !Ref EventManagementAttendanceTable
+          CERTIFICATE_BUCKET_NAME: !Ref EventManagementCertificatesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementTicketsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementAttendanceTable
+        - S3CrudPolicy:
+            BucketName: !Ref EventManagementCertificatesBucket
+      Events:
+        CheckInTicket:
+          Type: Api
+          Properties:
+            Path: /tickets/checkin
+            Method: post
+            Auth:
+              Authorizer: NONE
+
+        GetCertificatev2:
+          Type: Api
+          Properties:
+            Path: /certificates-v2/{ticketId}
+            Method: get
+            Auth:
+              Authorizer: NONE
+
+
             
   EventManagementUserAvatarsBucket:
     Type: AWS::S3::Bucket
@@ -201,3 +242,37 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
+
+
+
+  EventManagementCertificatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "event-management-certificates-${AWS::AccountId}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+
+  EventManagementAttendanceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementAttendance
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: EventId
+          AttributeType: S
+        - AttributeName: TicketId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: EventId
+          KeyType: HASH
+        - AttributeName: TicketId
+          KeyType: RANGE

@@ -1,42 +1,73 @@
 import axiosInstance from "./axiosInstance";
 
-// Cấu trúc chuẩn hóa khớp 100% với JSON camelCase từ AWS Lambda trả về
 export interface Ticket {
-  ticketId: string;
-  eventId: string;
-  userId: string;
-  userEmail: string;       
-  userFullName: string;    
-  createdAt: string;
-  status: string;
-  eventTitle?: string;
+    ticketId: string;
+    eventId: string;
+    userId: string;
+
+    userEmail: string;
+    userFullName: string;
+
+    eventTitle: string;
+    eventStartTime: string;
+    eventLocation: string;
+    eventCategory: string;
+
+    createdAt: string;
+    status: string;
+}
+
+export interface CheckInResponse {
+    success: boolean;
+    message: string;
+    ticketId: string;
+    eventId?: string;
+    eventTitle?: string;
+    userId?: string;
+    userEmail?: string;
+    userFullName?: string;
+    checkInAt?: string;
 }
 
 export const ticketService = {
-  // Đăng ký vé: POST /events/{eventId}/register
-  registerTicket: async (eventId: string): Promise<Ticket> => {
-    // Ép kiểu trực tiếp theo chuẩn camelCase trả về từ BE
-    const response = await axiosInstance.post<{ message: string; ticketId: Ticket }>(
-      `/events/${eventId}/register`,
-    );
-    
-    // Kiểm tra và Log để debug nếu cấu trúc trả về bị bọc hoặc phẳng
-    console.log("Xử lý Đăng ký - Response Data:", response.data);
+    registerTicket: async (eventId: string): Promise<Ticket> => {
+        const response = await axiosInstance.post<Ticket>(
+            `/events/${eventId}/register`
+        );
 
-    if (!response.data || !response.data.ticketId) {
-      throw new Error("Cấu trúc phản hồi API không hợp lệ, thiếu object 'ticket'");
-    }
+        return response.data;
+    },
 
-    return response.data.ticketId;
-  },
+    getMyTickets: async (): Promise<Ticket[]> => {
+        const response = await axiosInstance.get<Ticket[]>("/my-tickets");
+        return Array.isArray(response.data) ? response.data : [];
+    },
 
-  // Lấy danh sách vé: GET /my-tickets
-  getMyTickets: async (): Promise<Ticket[]> => {
-    const response = await axiosInstance.get<Ticket[]>("/my-tickets");
-    
-    console.log("Xử lý Danh sách - Response Data:", response.data);
+    getTicketById: async (ticketId: string): Promise<Ticket> => {
+        const response = await axiosInstance.get<Ticket>(`/tickets/${ticketId}`);
+        return response.data;
+    },
 
-    if (!Array.isArray(response.data)) return [];
-    return response.data;
-  },
+    lookupTicket: async (ticketId: string): Promise<Ticket> => {
+        const response = await axiosInstance.get<Ticket>(
+            `/admin/tickets/${ticketId}`
+        );
+
+        return response.data;
+    },
+
+    checkInTicket: async (
+        ticketId: string,
+        method: "QR" | "MANUAL"
+    ): Promise<CheckInResponse> => {
+        const response = await axiosInstance.post<CheckInResponse>(
+            `${import.meta.env.VITE_CHECKIN_API_URL}/tickets/checkin`,
+            {
+                ticketId,
+                method,
+            }
+        );
+
+        return response.data;
+    },
 };

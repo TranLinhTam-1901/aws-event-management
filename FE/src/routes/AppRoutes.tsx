@@ -12,6 +12,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import { AdminLayout } from "../components/layout/AdminLayout";
 import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage";
 import { UserProfilePage } from "../pages/user/UserProfilePage";
+import { CheckInPage } from "../pages/admin/CheckInPage";
 
 function AppRoutes() {
   return (
@@ -38,8 +39,8 @@ function AppRoutes() {
          <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-         
-          
+          <Route path="/admin/check-in" element={<CheckInPage />} />
+
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
         </Route>
