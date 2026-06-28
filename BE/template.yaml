@@ -74,12 +74,12 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          USER_TABLE_NAME: EventManagementUsers
+          USER_TABLE_NAME: !Ref EventManagementUsersTable
           AVATAR_BUCKET_NAME: !Ref EventManagementUserAvatarsBucket
 
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: EventManagementUsers
+            TableName: !Ref EventManagementUsersTable
 
         - S3CrudPolicy:
             BucketName: !Ref EventManagementUserAvatarsBucket
@@ -123,22 +123,29 @@ Resources:
           # Đút tên 2 bảng từ tầng hạ tầng vào biến môi trường để file Function.cs đọc ra nhé
           TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
           EVENT_TABLE_NAME: !Ref EventManagementEventsTable
-          USER_TABLE_NAME: EventManagementUsers
+          USER_TABLE_NAME: !Ref EventManagementUsersTable
+          NOTIFICATION_FUNCTION_NAME: "notification-lambda"
       Policies:
-        # CẤP QUYỀN ĐỒNG THỜI CHO CẢ 2 BẢNG TẠI ĐÂY CHÍNH XÁC NÈ ÔNG:
+        # CẤP QUYỀN ĐỒNG THỜI CHO CẢ 2 BẢNG 
         - DynamoDBCrudPolicy:
             TableName: !Ref EventManagementEventsTable   # Để đọc thông tin Event và tăng số lượng vé nguyên tử
         - DynamoDBCrudPolicy:
             TableName: !Ref EventManagementTicketsTable  # Để tạo vé mới và Query tìm vé theo UserId
-
-        - Statement:
-              - Effect: Allow
-                Action:
-                  - dynamodb:GetItem
-                  - dynamodb:Query
-                  - dynamodb:Scan
-                # AWS tự động hiểu và dịch chuỗi này thành ARN chuẩn khi deploy, bảo mật tuyệt đối!
-                Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventManagementUsers"
+        # - Statement:
+        #     - Effect: Allow
+        #       Action:
+        #         - lambda:InvokeFunction
+        #       Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:notification-lambda"
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementUsersTable
+        # - Statement:
+        #       - Effect: Allow
+        #         Action:
+        #           - dynamodb:GetItem
+        #           - dynamodb:Query
+        #           - dynamodb:Scan
+        #         # AWS tự động hiểu và dịch chuỗi này thành ARN chuẩn khi deploy, bảo mật tuyệt đối!
+        #         Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventManagementUsers"
       Events:
         RegisterTicket:
           Type: Api
@@ -196,7 +203,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       # Bạn có thể đổi tên bucket tùy ý, hoặc để AWS tự sinh chuỗi random chống trùng lặp
-      BucketName: !Sub "event-management-user-avatars-${AWS::AccountId}"
+      BucketName: !Sub "event-management-user-avatars-${AWS::Region}-${AWS::AccountId}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -244,7 +251,6 @@ Resources:
             ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
 
 
-
   EventManagementCertificatesBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -259,7 +265,6 @@ Resources:
             AllowedOrigins:
               - '*'
             MaxAge: 3000
-
 
   EventManagementAttendanceTable:
     Type: AWS::DynamoDB::Table
@@ -276,3 +281,15 @@ Resources:
           KeyType: HASH
         - AttributeName: TicketId
           KeyType: RANGE
+
+  EventManagementUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementUsers
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: UserId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserId
+          KeyType: HASH
