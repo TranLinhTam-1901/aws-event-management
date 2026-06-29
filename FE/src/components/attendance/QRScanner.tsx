@@ -1,13 +1,55 @@
-import React from 'react';
+import React, { useEffect, useRef } from "react";
+import { Html5QrcodeScanner } from "html5-qrcode";
 
-export const QRScanner: React.FC = () => {
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-6 text-center">QR Code Scanner</h2>
-      <div className="bg-gray-300 h-64 rounded-lg mb-4 flex items-center justify-center">
-        <p className="text-gray-600">Scanner will be displayed here</p>
-      </div>
-      <p className="text-center text-gray-600 text-sm">Position QR code in the frame</p>
-    </div>
-  );
+type QRScannerProps = {
+    onScanSuccess: (ticketId: string) => void;
+};
+
+export const QRScanner: React.FC<QRScannerProps> = ({ onScanSuccess }) => {
+    const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+    const scannedRef = useRef(false);
+
+    useEffect(() => {
+        if (scannerRef.current) return;
+
+        const scanner = new Html5QrcodeScanner(
+            "qr-reader",
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+            },
+            false
+        );
+
+        scanner.render(
+            (decodedText) => {
+                if (scannedRef.current) return;
+
+                scannedRef.current = true;
+                onScanSuccess(decodedText);
+
+                setTimeout(() => {
+                    scannedRef.current = false;
+                }, 3000);
+            },
+            () => { }
+        );
+
+        scannerRef.current = scanner;
+
+        return () => {
+            scanner.clear().catch(() => { });
+            scannerRef.current = null;
+        };
+    }, [onScanSuccess]);
+
+    return (
+        <div>
+            <p className="mb-4 text-slate-600">
+                Đưa mã QR trên vé vào khung camera để xác nhận người tham dự.
+            </p>
+
+            <div id="qr-reader" className="w-full" />
+        </div>
+    );
 };

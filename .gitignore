@@ -85,6 +85,7 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
+.vs/
 
 # Docker
 .docker/
@@ -92,4 +93,6 @@ docker-data/
 
 .vscode/*
 !.vscode/extensions.json
-!.vscode/settings.json
+!.vscode/settings.json. v s / 
+ 
+ 
