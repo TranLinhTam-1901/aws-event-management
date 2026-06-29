@@ -15,6 +15,7 @@
 		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
 		<PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.21.3" />
 		<PackageReference Include="AWSSDK.S3" Version="4.0.25.3" />
+		<PackageReference Include="AWSSDK.SimpleEmailV2" Version="4.0.14.9" />
 		<PackageReference Include="QuestPDF" Version="2024.10.3" />
 	</ItemGroup>
 

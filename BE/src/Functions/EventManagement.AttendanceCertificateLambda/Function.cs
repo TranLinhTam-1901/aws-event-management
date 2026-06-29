@@ -10,6 +10,8 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System.Net;
 using System.Text.Json;
+using Amazon.SimpleEmailV2;
+using Amazon.SimpleEmailV2.Model;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -22,6 +24,8 @@ public class Function
     private readonly string _certificateBucketName;
     private readonly string _ticketTableName;
     private readonly string _attendanceTableName;
+    private readonly IAmazonSimpleEmailServiceV2 _sesClient;
+    private readonly string _sesFromEmail;
 
     public Function()
     {
@@ -31,7 +35,11 @@ public class Function
 
         _dynamoDb = new AmazonDynamoDBClient();
         _s3Client = new AmazonS3Client();
+        _sesClient = new AmazonSimpleEmailServiceV2Client();
 
+        _sesFromEmail =
+            Environment.GetEnvironmentVariable("SES_FROM_EMAIL")
+            ?? throw new Exception("SES_FROM_EMAIL not configured");
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
@@ -51,8 +59,6 @@ public class Function
                 return CreateResponse(HttpStatusCode.OK, new { message = "CORS OK" });
             }
 
-            var userClaims = ExtractJwtClaims(request, context);
-
             if (httpMethod == "GET"
                 && path != null
                 && (path.StartsWith("/certificates/")
@@ -62,26 +68,16 @@ public class Function
                 return await HandleGenerateCertificateAsync(ticketId, context);
             }
 
+            if (httpMethod == "GET"
+    && path != null
+    && path.StartsWith("/tickets/"))
+            {
+                var ticketId = path.Split('/').Last();
+                return await HandleGetTicketByIdAsync(ticketId, context);
+            }
+
             if (httpMethod == "POST" && path != null && path.EndsWith("/tickets/checkin"))
             {
-                if (userClaims == null)
-                {
-                    return CreateResponse(HttpStatusCode.Unauthorized, new
-                    {
-                        success = false,
-                        message = "Yêu cầu không hợp lệ. Vui lòng đăng nhập lại!"
-                    });
-                }
-
-                if (!userClaims.IsAdmin)
-                {
-                    return CreateResponse(HttpStatusCode.Forbidden, new
-                    {
-                        success = false,
-                        message = "Bạn không có quyền check-in. Chỉ Admin được phép thực hiện."
-                    });
-                }
-
                 return await HandleCheckInAsync(request, context);
             }
 
@@ -104,6 +100,49 @@ public class Function
                 detail = ex.Message
             });
         }
+    }
+
+    private async Task<APIGatewayProxyResponse> HandleGetTicketByIdAsync(
+    string ticketId,
+    ILambdaContext context)
+    {
+        if (string.IsNullOrWhiteSpace(ticketId))
+        {
+            return CreateResponse(HttpStatusCode.BadRequest, new
+            {
+                success = false,
+                message = "Thiếu ticketId."
+            });
+        }
+
+        ticketId = ticketId.Trim();
+
+        var ticket = await GetTicketByIdAsync(ticketId);
+
+        if (ticket == null)
+        {
+            return CreateResponse(HttpStatusCode.NotFound, new
+            {
+                success = false,
+                message = "Vé không tồn tại.",
+                ticketId
+            });
+        }
+
+        return CreateResponse(HttpStatusCode.OK, new
+        {
+            ticketId,
+            eventId = GetString(ticket, "EventId"),
+            userId = GetString(ticket, "UserId"),
+            userEmail = GetString(ticket, "UserEmail"),
+            userFullName = GetString(ticket, "UserFullName"),
+            eventTitle = GetString(ticket, "EventTitle"),
+            eventStartTime = GetString(ticket, "EventStartTime"),
+            eventLocation = GetString(ticket, "EventLocation"),
+            eventCategory = GetString(ticket, "EventCategory"),
+            createdAt = GetString(ticket, "CreatedAt"),
+            status = GetString(ticket, "Status")
+        });
     }
 
     private async Task<APIGatewayProxyResponse> HandleCheckInAsync(
@@ -162,7 +201,10 @@ public class Function
 
         var status = GetString(ticket, "Status");
 
-        if (status != "CONFIRMED" && status != "SUCCESS")
+        if (status != "CONFIRMED"
+            && status != "SUCCESS"
+            && status != "PENDING_CHECKIN"
+            && status != "PENDING")
         {
             return CreateResponse(HttpStatusCode.BadRequest, new
             {
@@ -178,6 +220,16 @@ public class Function
         var userEmail = GetString(ticket, "UserEmail");
         var userFullName = GetString(ticket, "UserFullName");
         var eventTitle = GetString(ticket, "EventTitle");
+
+        if (string.IsNullOrWhiteSpace(eventId))
+        {
+            return CreateResponse(HttpStatusCode.BadRequest, new
+            {
+                success = false,
+                message = "Vé thiếu EventId, không thể check-in.",
+                ticketId
+            });
+        }
 
         var existed = await IsAlreadyCheckedInAsync(eventId, ticketId);
 
@@ -209,6 +261,8 @@ public class Function
             checkInMethod
         );
 
+        await UpdateTicketAfterCheckInAsync(ticketId, checkInAt);
+
         return CreateResponse(HttpStatusCode.OK, new
         {
             success = true,
@@ -220,7 +274,8 @@ public class Function
             userEmail,
             userFullName,
             checkInAt,
-            checkInMethod
+            checkInMethod,
+            status = "CHECKED_IN"
         });
     }
 
@@ -247,6 +302,20 @@ public class Function
             {
                 success = false,
                 message = "Vé không tồn tại.",
+                ticketId
+            });
+        }
+
+        var eventId = GetString(ticket, "EventId");
+
+        var attended = await IsAlreadyCheckedInAsync(eventId, ticketId);
+
+        if (!attended)
+        {
+            return CreateResponse(HttpStatusCode.BadRequest, new
+            {
+                success = false,
+                message = "Bạn chưa check-in nên chưa thể tải chứng nhận.",
                 ticketId
             });
         }
@@ -292,6 +361,20 @@ public class Function
             Expires = DateTime.UtcNow.AddMinutes(15)
         });
 
+        var userEmail = GetString(ticket, "UserEmail");
+
+        context.Logger.LogLine($"[EMAIL] To: {userEmail}");
+        context.Logger.LogLine($"[EMAIL] From: {_sesFromEmail}");
+
+        await SendCertificateEmailAsync(
+            userEmail,
+            userFullName,
+            eventTitle,
+            presignedUrl
+        );
+
+        context.Logger.LogLine("[EMAIL] SES SendEmailAsync completed.");
+
         context.Logger.LogLine($"[CERTIFICATE] Generated certificate for TicketId={ticketId}, Key={s3Key}");
 
         return CreateResponse(HttpStatusCode.OK, new
@@ -302,6 +385,77 @@ public class Function
             certificateId,
             downloadUrl = presignedUrl
         });
+    }
+
+    private async Task SendCertificateEmailAsync(
+    string toEmail,
+    string fullName,
+    string eventTitle,
+    string downloadUrl)
+    {
+        var request = new SendEmailRequest
+        {
+            FromEmailAddress = _sesFromEmail,
+            Destination = new Destination
+            {
+                ToAddresses = new List<string>
+            {
+                toEmail
+            }
+            },
+            Content = new EmailContent
+            {
+                Simple = new Message
+                {
+                    Subject = new Content
+                    {
+                        Data = $"Certificate - {eventTitle}"
+                    },
+                    Body = new Body
+                    {
+                        Html = new Content
+                        {
+                            Data = $@"
+<html>
+<body style='font-family:Arial'>
+<h2>Xin chào {fullName},</h2>
+
+<p>Cảm ơn bạn đã tham gia sự kiện:</p>
+
+<h3>{eventTitle}</h3>
+
+<p>Certificate của bạn đã sẵn sàng.</p>
+
+<p>
+<a href='{downloadUrl}'
+style='background:#2563eb;
+padding:12px 20px;
+color:white;
+text-decoration:none;
+border-radius:6px'>
+📄 Download Certificate
+</a>
+</p>
+
+<p>Trân trọng,<br/>
+AWS Event Management Platform</p>
+
+</body>
+</html>"
+                        }
+                    }
+                }
+            }
+        };
+
+        try
+        {
+            await _sesClient.SendEmailAsync(request);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"SES ERROR: {ex.Message}", ex);
+        }
     }
 
     private static byte[] GenerateCertificatePdf(
@@ -412,6 +566,11 @@ public class Function
 
     private async Task<bool> IsAlreadyCheckedInAsync(string eventId, string ticketId)
     {
+        if (string.IsNullOrWhiteSpace(eventId) || string.IsNullOrWhiteSpace(ticketId))
+        {
+            return false;
+        }
+
         var response = await _dynamoDb.GetItemAsync(new GetItemRequest
         {
             TableName = _attendanceTableName,
@@ -455,63 +614,27 @@ public class Function
         });
     }
 
-    private JwtClaims? ExtractJwtClaims(APIGatewayProxyRequest request, ILambdaContext context)
+    private async Task UpdateTicketAfterCheckInAsync(string ticketId, string checkInAt)
     {
-        try
+        await _dynamoDb.UpdateItemAsync(new UpdateItemRequest
         {
-            bool isLocal = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
-
-            if (request.RequestContext?.Authorizer?.Claims == null)
+            TableName = _ticketTableName,
+            Key = new Dictionary<string, AttributeValue>
             {
-                if (isLocal)
-                {
-                    return new JwtClaims
-                    {
-                        UserId = "admin-test",
-                        Email = "admin@test.com",
-                        FullName = "Administrator",
-                        Groups = new List<string> { "Admin" }
-                    };
-                }
-
-                return null;
+                ["TicketId"] = new AttributeValue { S = ticketId }
+            },
+            UpdateExpression = "SET #status = :status, #checkedInAt = :checkedInAt",
+            ExpressionAttributeNames = new Dictionary<string, string>
+            {
+                ["#status"] = "Status",
+                ["#checkedInAt"] = "CheckedInAt"
+            },
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                [":status"] = new AttributeValue { S = "CHECKED_IN" },
+                [":checkedInAt"] = new AttributeValue { S = checkInAt }
             }
-
-            var claims = request.RequestContext.Authorizer.Claims;
-
-            claims.TryGetValue("sub", out var userId);
-            claims.TryGetValue("email", out var email);
-            claims.TryGetValue("name", out var fullName);
-
-            var groups = new List<string>();
-
-            if (claims.TryGetValue("cognito:groups", out var groupsObj) && groupsObj != null)
-            {
-                var groupsStr = groupsObj.ToString() ?? string.Empty;
-
-                groups = groupsStr.StartsWith("[") && groupsStr.EndsWith("]")
-                    ? JsonSerializer.Deserialize<List<string>>(groupsStr) ?? new List<string>()
-                    : groupsStr.Split(',').Select(g => g.Trim()).ToList();
-            }
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return null;
-            }
-
-            return new JwtClaims
-            {
-                UserId = userId,
-                Email = email ?? string.Empty,
-                FullName = fullName ?? string.Empty,
-                Groups = groups
-            };
-        }
-        catch (Exception ex)
-        {
-            context.Logger.LogLine($"Error extracting JWT claims: {ex.Message}");
-            return null;
-        }
+        });
     }
 
     private static string GetString(Dictionary<string, AttributeValue> item, string key)
@@ -545,19 +668,9 @@ public class Function
             {
                 ["Content-Type"] = "application/json",
                 ["Access-Control-Allow-Origin"] = "*",
-                ["Access-Control-Allow-Headers"] = "Content-Type,Authorization",
+                ["Access-Control-Allow-Headers"] = "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
                 ["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
             }
         };
     }
-}
-
-public class JwtClaims
-{
-    public string UserId { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-    public List<string> Groups { get; set; } = new();
-
-    public bool IsAdmin => Groups.Contains("Admin");
 }

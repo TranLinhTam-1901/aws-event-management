@@ -170,6 +170,7 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
+          SES_FROM_EMAIL: khacanh204@gmail.com
           TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
           ATTENDANCE_TABLE_NAME: !Ref EventManagementAttendanceTable
           CERTIFICATE_BUCKET_NAME: !Ref EventManagementCertificatesBucket
@@ -180,6 +181,12 @@ Resources:
             TableName: !Ref EventManagementAttendanceTable
         - S3CrudPolicy:
             BucketName: !Ref EventManagementCertificatesBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
       Events:
         CheckInTicket:
           Type: Api
@@ -193,6 +200,14 @@ Resources:
           Type: Api
           Properties:
             Path: /certificates-v2/{ticketId}
+            Method: get
+            Auth:
+              Authorizer: NONE
+
+        GetTicketById:
+          Type: Api
+          Properties:
+            Path: /tickets/{ticketId}
             Method: get
             Auth:
               Authorizer: NONE
@@ -254,7 +269,7 @@ Resources:
   EventManagementCertificatesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "event-management-certificates-${AWS::AccountId}"
+      BucketName: !Sub "event-management-certificates-${AWS::AccountId}-${AWS::Region}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
