@@ -56,12 +56,17 @@ export const ticketService = {
         return response.data;
     },
 
+    getCertificate: async (ticketId: string): Promise<{ success: boolean; message: string; ticketId: string; certificateId: string; downloadUrl: string }> => {
+        const response = await axiosInstance.get(`/certificates-v2/${ticketId}`);
+        return response.data;
+    },
+
     checkInTicket: async (
         ticketId: string,
         method: "QR" | "MANUAL"
     ): Promise<CheckInResponse> => {
         const response = await axiosInstance.post<CheckInResponse>(
-            `${import.meta.env.VITE_CHECKIN_API_URL}/tickets/checkin`,
+            `${import.meta.env.VITE_API_BASE_URL}/tickets/checkin`,
             {
                 ticketId,
                 method,

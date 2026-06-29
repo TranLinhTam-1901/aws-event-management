@@ -24,26 +24,66 @@ export const CheckInPage: React.FC = () => {
             return;
         }
 
-        setTicket({
-            ticketId: finalTicketId,
-            eventId: "",
-            userId: "",
-            userEmail: "",
-            userFullName: "Chưa xác minh",
-            eventTitle: "Chưa xác minh",
-            eventStartTime: "",
-            eventLocation: "",
-            eventCategory: "",
-            createdAt: "",
-            status: "PENDING_CHECKIN",
-        });
-
-        setTicketId(finalTicketId);
+        setLoading(true);
         setResult(null);
+
+        try {
+            const foundTicket = await ticketService.getTicketById(finalTicketId);
+
+            setTicket(foundTicket);
+            setTicketId(finalTicketId);
+        } catch (error) {
+            console.error(error);
+
+            setTicket(null);
+            setResult({
+                success: false,
+                message: "Không tìm thấy Ticket.",
+                ticketId: finalTicketId,
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleScanSuccess = async (value: string) => {
         await handleSearchTicket(value);
+
+        const scannedTicketId = value.trim();
+        if (!scannedTicketId) return;
+
+        setLoading(true);
+        setResult(null);
+
+        try {
+            const data = await ticketService.checkInTicket(scannedTicketId, "QR");
+            setResult(data);
+
+            if (data.success) {
+                setTicket((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            status: "CHECKED_IN",
+                            eventId: data.eventId || prev.eventId,
+                            eventTitle: data.eventTitle || prev.eventTitle,
+                            userId: data.userId || prev.userId,
+                            userEmail: data.userEmail || prev.userEmail,
+                            userFullName: data.userFullName || prev.userFullName,
+                        }
+                        : prev
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            setResult({
+                success: false,
+                message: "Check-in QR thất bại hoặc lỗi kết nối API.",
+                ticketId: scannedTicketId,
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCheckIn = async (method: "QR" | "MANUAL") => {
@@ -55,6 +95,21 @@ export const CheckInPage: React.FC = () => {
         try {
             const data = await ticketService.checkInTicket(ticket.ticketId, method);
             setResult(data);
+            if (data.success) {
+                setTicket((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            status: "CHECKED_IN",
+                            eventId: data.eventId || prev.eventId,
+                            eventTitle: data.eventTitle || prev.eventTitle,
+                            userId: data.userId || prev.userId,
+                            userEmail: data.userEmail || prev.userEmail,
+                            userFullName: data.userFullName || prev.userFullName,
+                        }
+                        : prev
+                );
+            }
         } catch (error) {
             console.error(error);
             setResult({
@@ -66,25 +121,6 @@ export const CheckInPage: React.FC = () => {
             setLoading(false);
         }
     };
-
-    const handleMockCheckIn = () => {
-        if (!ticket) return;
-
-        const now = new Date().toISOString();
-
-        setResult({
-            success: true,
-            message: "Check-in thủ công thành công.",
-            ticketId: ticket.ticketId,
-            eventId: ticket.eventId,
-            eventTitle: ticket.eventTitle || "Chưa xác minh",
-            userId: ticket.userId,
-            userEmail: ticket.userEmail,
-            userFullName: ticket.userFullName || "Chưa xác minh",
-            checkInAt: now,
-        });
-    };
-
 
     return (
         <div>
@@ -187,23 +223,59 @@ export const CheckInPage: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="mt-6 flex flex-col md:flex-row gap-3">
-                        <button
-                            type="button"
-                            onClick={() => handleCheckIn("QR")}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold"
-                        >
-                            Check-in bằng QR
-                        </button>
+                    {ticket?.status !== "CHECKED_IN" ? (
+                        <div className="mt-6 flex flex-col md:flex-row gap-3">
+                            <button
+                                type="button"
+                                disabled
+                                className="flex-1 bg-green-400 text-white py-3 rounded-xl font-bold cursor-not-allowed"
+                            >
+                                Quét QR để check-in
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={handleMockCheckIn}
-                            className="flex-1 bg-slate-700 hover:bg-slate-800 text-white py-3 rounded-xl font-bold"
-                        >
-                            Check-in thủ công
-                        </button>
-                    </div>
+                            <button
+                                type="button"
+                                onClick={() => handleCheckIn("MANUAL")}
+                                disabled={loading}
+                                className="flex-1 bg-slate-700 hover:bg-slate-800 text-white py-3 rounded-xl font-bold disabled:opacity-60"
+                            >
+                                {loading ? "Đang check-in..." : "Check-in thủ công"}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="mt-6 space-y-3">
+
+                            <div className="rounded-xl border border-green-300 bg-green-50 p-4 text-center">
+                                <div className="text-green-700 text-lg font-bold">
+                                    ✅ Vé đã được check-in
+                                </div>
+
+                                <div className="text-sm text-green-600 mt-1">
+                                    Người tham dự đã hoàn tất check-in và có thể tải chứng nhận.
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        const data = await ticketService.getCertificate(ticket.ticketId);
+
+                                        if (data.success) {
+                                            window.open(data.downloadUrl, "_blank");
+                                        }
+                                    } catch (error) {
+                                        console.error(error);
+                                        alert("Không thể tải chứng nhận.");
+                                    }
+                                }}
+                                className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-xl font-bold"
+                            >
+                                📄 Tải chứng nhận PDF
+                            </button>
+
+                        </div>
+                    )}
                 </div>
             )}
 
