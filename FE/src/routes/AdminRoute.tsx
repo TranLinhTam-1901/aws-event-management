@@ -25,6 +25,7 @@ export const AdminRoute: React.FC = () => {
     return <Navigate to="/" replace />;
   }
 
+
   // 4. Hợp lệ -> Cho phép đi tiếp vào các Route quản trị con
   return <Outlet />;
 };

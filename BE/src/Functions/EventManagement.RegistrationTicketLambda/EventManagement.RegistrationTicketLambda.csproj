@@ -11,10 +11,20 @@
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
     <PackageReference Include="Amazon.Lambda.Core" Version="2.8.1" />
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.8.2" />
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
+<<<<<<< HEAD
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\EventManagement.Shared.csproj" />
+=======
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.21.3" />
+    <PackageReference Include="AWSSDK.Lambda" Version="4.0.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Shared/EventManagement.Shared.csproj" />
+>>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
   </ItemGroup>
 </Project>
