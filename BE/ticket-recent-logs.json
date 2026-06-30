@@ -1,0 +1,36 @@
+{
+
+    "events": [
+        {
+            "logStreamName": "2026/06/29/[$LATEST]ba4279c0acb14d44abccb04d5f703206",
+            "timestamp": 1782727368370,
+            "message": "INIT_START Runtime Version: dotnet:8.v88\tRuntime Version ARN: arn:aws:lambda:ap-southeast-1::runtime:736084cc3a21543ce4d974e9792ab308ccc0b0633fd1b7abcf6ccc4d33b49650\n",
+            "ingestionTime": 1782727376947,
+            "eventId": "39756148800466410986121378231881237963266521141059387392"
+        },
+        {
+            "logStreamName": "2026/06/29/[$LATEST]ba4279c0acb14d44abccb04d5f703206",
+            "timestamp": 1782727368740,
+            "message": "START RequestId: c31115af-4bc6-4f6d-8ad1-b94158b79c4b Version: $LATEST\n",
+            "ingestionTime": 1782727376947,
+            "eventId": "39756148808717686709577708794249453724146414898272141313"
+        },
+        {
+            "logStreamName": "2026/06/29/[$LATEST]ba4279c0acb14d44abccb04d5f703206",
+            "timestamp": 1782727369266,
+aws: [ERROR]: 'charmap' codec can't encode character '\u0110' in position 71: character maps to <undefined>
+            "message": "2026-06-29T10:02:49.207Z\tc31115af-4bc6-4f6d-8ad1-b94158b79c4b\tinfo\t[REQUEST] Method: GET, Resource: /my-tickets, Path: /my-tickets\n",
+            "ingestionTime": 1782727376947,
+            "eventId": "39756148820447878684004816566697241535559453050417840130"
+        },
+        {
+            "logStreamName": "2026/06/29/[$LATEST]ba4279c0acb14d44abccb04d5f703206",
+            "timestamp": 1782727369284,
+            "message": "2026-06-29T10:02:49.284Z\tc31115af-4bc6-4f6d-8ad1-b94158b79c4b\tinfo\tExtracted -> userId: 095a25fc-0041-70d7-e251-e4f22002c590, email: phanthuky12@gmail.com, fullName: , groups: [ap-southeast-1_JfSHamlN1_Google]\n",
+            "ingestionTime": 1782727376947,
+            "eventId": "39756148820849292097578367783244884464467123557525487619"
+        },
+        {
+            "logStreamName": "2026/06/29/[$LATEST]ba4279c0acb14d44abccb04d5f703206",
+            "timestamp": 1782727369285,
+            "message": 

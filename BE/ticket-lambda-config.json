@@ -1,0 +1,46 @@
+{
+    "FunctionName": "TicketLambda",
+    "FunctionArn": "arn:aws:lambda:ap-southeast-1:133375667858:function:TicketLambda",
+    "Runtime": "dotnet8",
+    "Role": "arn:aws:iam::133375667858:role/aws-event-management-TicketFunctionRole-rqrFd2bTDzsm",
+    "Handler": "EventManagement.RegistrationTicketLambda::EventManagement.RegistrationTicketLambda.Function::FunctionHandler",
+    "CodeSize": 15384565,
+    "Description": "",
+    "Timeout": 30,
+    "MemorySize": 256,
+    "LastModified": "2026-06-29T18:09:18.000+0000",
+    "CodeSha256": "bqlXd0iv6SbMyNNzA4IRbZVk3YpE5jsl2IMRZlH5tvM=",
+    "Version": "$LATEST",
+    "Environment": {
+        "Variables": {
+            "EVENT_TABLE_NAME": "EventManagementEvents",
+            "USER_TABLE_NAME": "EventManagementUsers",
+            "NOTIFICATION_FUNCTION_NAME": "notification-lambda",
+            "TICKET_TABLE_NAME": "EventManagementTickets"
+        }
+    },
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "09974124-00ad-4f38-bf40-4b47a1bffe13",
+    "State": "Active",
+    "LastUpdateStatus": "Successful",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+    },
+    "SnapStart": {
+        "ApplyOn": "None",
+        "OptimizationStatus": "Off"
+    },
+    "RuntimeVersionConfig": {
+        "RuntimeVersionArn": "arn:aws:lambda:ap-southeast-1::runtime:736084cc3a21543ce4d974e9792ab308ccc0b0633fd1b7abcf6ccc4d33b49650"
+    },
+    "LoggingConfig": {
+        "LogFormat": "Text",
+        "LogGroup": "/aws/lambda/TicketLambda"
+    }
+}

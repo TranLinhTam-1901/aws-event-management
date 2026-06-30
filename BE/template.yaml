@@ -2,19 +2,26 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Event Management Local API
 
+
+
+Parameters:
+  CognitoUserPoolIdParam:
+    Type: String
+    Description: "ID của Cognito User Pool"
+    Default: "YOUR_COGNITO_USER_POOL_ID_PLACEHOLDER" 
 # ============================================
-# THÊM MỚI: Globals block với Cognito Authorizer
+# Globals block với Cognito Authorizer
 # Áp dụng cho TẤT CẢ API trong template này
 # ============================================
 Globals:
   Api:
     # ============================================
-    # THÊM MỚI: CORS config để xử lý preflight OPTIONS request
+    # CORS config để xử lý preflight OPTIONS request
     # Bắt buộc phải có khi FE (localhost:5173 hoặc domain khác)
     # gọi API Gateway ở domain execute-api.amazonaws.com
     # ============================================
     Cors:
-      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowMethods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
       AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
       AllowOrigin: "'*'"
       # Khi đã có domain FE thật (deploy lên Vercel/Amplify...),
@@ -25,9 +32,8 @@ Globals:
       AddDefaultAuthorizerToCorsPreflight: false
       Authorizers:
         CognitoAuthorizer:
-          UserPoolArn: arn:aws:cognito-idp:ap-southeast-2:133375667858:userpool/ap-southeast-2_oCPOcdOZg
-          # Ví dụ: arn:aws:cognito-idp:ap-southeast-2:133375667858:userpool/ap-southeast-2_AbCdEfGhI
-
+          UserPoolArn: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolIdParam}"
+         
 Resources:
   EventFunction:
     Type: AWS::Serverless::Function
@@ -38,16 +44,104 @@ Resources:
       Runtime: dotnet8
       MemorySize: 256
       Timeout: 30
+
+      Environment:
+        Variables:
+          EVENT_TABLE_NAME: !Ref EventManagementEventsTable
+          CATEGORY_TABLE_NAME: !Ref EventManagementCategoriesTable
+          BANNER_BUCKET_NAME: !Ref EventManagementEventBannersBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementEventsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementCategoriesTable
+        - S3CrudPolicy:
+            BucketName: !Ref EventManagementEventBannersBucket
+
       Events:
         GetEvents:
           Type: Api
           Properties:
             Path: /events
             Method: get
-            # Auth sẽ tự dùng DefaultAuthorizer (CognitoAuthorizer) từ Globals
-            # Nếu route này cần PUBLIC (không cần login), dùng:
-            # Auth:
-            #   Authorizer: NONE
+            Auth:
+              Authorizer: NONE
+
+        GetEventById:
+          Type: Api
+          Properties:
+            Path: /events/{eventId}
+            Method: get
+            Auth:
+              Authorizer: NONE
+
+        CreateEvent:
+          Type: Api
+          Properties:
+            Path: /admin/events
+            Method: post
+
+        GetAdminEvents:
+          Type: Api
+          Properties:
+            Path: /admin/events
+            Method: get
+
+        GetEventBannerUploadUrl:
+          Type: Api
+          Properties:
+            Path: /admin/events/banner-upload-url
+            Method: get
+
+        GetAdminEventById:
+          Type: Api
+          Properties:
+            Path: /admin/events/{eventId}
+            Method: get
+
+        UpdateEvent:
+          Type: Api
+          Properties:
+            Path: /admin/events/{eventId}
+            Method: put
+
+        PatchEventVisibility:
+          Type: Api
+          Properties:
+            Path: /admin/events/{eventId}/visibility
+            Method: patch
+
+        GetCategories:
+          Type: Api
+          Properties:
+            Path: /categories
+            Method: get
+            Auth:
+              Authorizer: NONE
+
+        GetAdminCategories:
+          Type: Api
+          Properties:
+            Path: /admin/categories
+            Method: get
+
+        CreateCategory:
+          Type: Api
+          Properties:
+            Path: /admin/categories
+            Method: post
+
+        UpdateCategory:
+          Type: Api
+          Properties:
+            Path: /admin/categories/{categoryId}
+            Method: put
+
+        DeleteCategory:
+          Type: Api
+          Properties:
+            Path: /admin/categories/{categoryId}
+            Method: delete
 
   UserProfileFunction:
     Type: AWS::Serverless::Function
@@ -60,15 +154,16 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-
-          USER_TABLE_NAME: EventManagementUsers
+          USER_TABLE_NAME: !Ref EventManagementUsersTable
           AVATAR_BUCKET_NAME: !Ref EventManagementUserAvatarsBucket
+
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: EventManagementUsers
+            TableName: !Ref EventManagementUsersTable
 
         - S3CrudPolicy:
             BucketName: !Ref EventManagementUserAvatarsBucket
+
       Events:
         InitProfile:
           Type: Api
@@ -87,18 +182,118 @@ Resources:
           Properties:
             Path: /profile/me
             Method: put
-        # === THÊM MỚI ROUTE LẤY PRESIGNED URL ===
+        # ROUTE LẤY PRESIGNED URL ===
         GetAvatarUploadUrl:
           Type: Api
           Properties:
             Path: /profile/avatar-upload-url
             Method: get
+
+  TicketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TicketLambda
+      CodeUri: src/Functions/EventManagement.RegistrationTicketLambda/
+      Handler: EventManagement.RegistrationTicketLambda::EventManagement.RegistrationTicketLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          # Đút tên 2 bảng từ tầng hạ tầng vào biến môi trường để file Function.cs đọc ra nhé
+          TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
+          EVENT_TABLE_NAME: !Ref EventManagementEventsTable
+          USER_TABLE_NAME: !Ref EventManagementUsersTable
+          NOTIFICATION_FUNCTION_NAME: "notification-lambda"
+      Policies:
+        # CẤP QUYỀN ĐỒNG THỜI CHO CẢ 2 BẢNG 
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementEventsTable   # Để đọc thông tin Event và tăng số lượng vé nguyên tử
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementTicketsTable  # Để tạo vé mới và Query tìm vé theo UserId
+        # - Statement:
+        #     - Effect: Allow
+        #       Action:
+        #         - lambda:InvokeFunction
+        #       Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:notification-lambda"
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementUsersTable
+        # - Statement:
+        #       - Effect: Allow
+        #         Action:
+        #           - dynamodb:GetItem
+        #           - dynamodb:Query
+        #           - dynamodb:Scan
+        #         # AWS tự động hiểu và dịch chuỗi này thành ARN chuẩn khi deploy, bảo mật tuyệt đối!
+        #         Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventManagementUsers"
+      Events:
+        RegisterTicket:
+          Type: Api
+          Properties:
+            Path: /events/{eventId}/register
+            Method: post
+        GetMyTickets:
+          Type: Api
+          Properties:
+            Path: /my-tickets
+            Method: get
+
+  AttendanceCertificateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AttendanceCertificateLambda
+      CodeUri: src/Functions/EventManagement.AttendanceCertificateLambda/
+      Handler: EventManagement.AttendanceCertificateLambda::EventManagement.AttendanceCertificateLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          SES_FROM_EMAIL: khacanh204@gmail.com
+          TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
+          ATTENDANCE_TABLE_NAME: !Ref EventManagementAttendanceTable
+          CERTIFICATE_BUCKET_NAME: !Ref EventManagementCertificatesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementTicketsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementAttendanceTable
+        - S3CrudPolicy:
+            BucketName: !Ref EventManagementCertificatesBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        CheckInTicket:
+          Type: Api
+          Properties:
+            Path: /tickets/checkin
+            Method: post
+            Auth:
+              Authorizer: NONE
+        GetTicketById:
+          Type: Api
+          Properties:
+            Path: /tickets/{ticketId}
+            Method: get
+            Auth:
+              Authorizer: NONE
+        GetCertificatev2:
+          Type: Api
+          Properties:
+            Path: /certificates-v2/{ticketId}
+            Method: get
+            Auth:
+              Authorizer: NONE
             
   EventManagementUserAvatarsBucket:
     Type: AWS::S3::Bucket
     Properties:
       # Bạn có thể đổi tên bucket tùy ý, hoặc để AWS tự sinh chuỗi random chống trùng lặp
-      BucketName: !Sub "event-management-user-avatars-${AWS::AccountId}"
+      BucketName: !Sub "event-management-user-avatars-${AWS::Region}-${AWS::AccountId}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -109,3 +304,126 @@ Resources:
             AllowedOrigins:
               - '*'      # Khi lên production, nên giới hạn lại domain cụ thể của FE
             MaxAge: 3000
+
+  EventManagementEventBannersBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Không đặt BucketName cố định — tránh xung đột với bucket orphan
+      # tạo ngoài stack (lỗi AWS::EarlyValidation::ResourceExistenceCheck)
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - PUT
+              - GET
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+  EventManagementEventBannersBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EventManagementEventBannersBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadEventBanners
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub '${EventManagementEventBannersBucket.Arn}/banners/*'
+
+  EventManagementEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementEvents
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: EventId
+          AttributeType: S # Kiểu String
+      KeySchema:
+        - AttributeName: EventId
+          KeyType: HASH # Khóa chính (Partition Key)
+
+  EventManagementCategoriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementCategories
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: CategoryId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: CategoryId
+          KeyType: HASH
+
+  EventManagementAttendanceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementAttendance
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: EventId
+          AttributeType: S
+        - AttributeName: TicketId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: EventId
+          KeyType: HASH
+        - AttributeName: TicketId
+          KeyType: RANGE
+
+  EventManagementCertificatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "event-management-certificates-${AWS::AccountId}-${AWS::Region}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+  # 2. Bảng lưu trữ Vé tham gia sự kiện (Có kèm GSI để tìm vé theo UserId)
+  EventManagementTicketsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementTickets
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: TicketId
+          AttributeType: S # Khóa chính của bảng vé
+        - AttributeName: UserId
+          AttributeType: S # Khóa dùng cho chỉ mục phụ GSI
+      KeySchema:
+        - AttributeName: TicketId
+          KeyType: HASH
+      # Khởi tạo Global Secondary Index (GSI) để phục vụ hàm tìm kiếm Vé theo UserId của ông
+      GlobalSecondaryIndexes:
+        - IndexName: UserTicketsIndex
+          KeySchema:
+            - AttributeName: UserId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
+
+  EventManagementUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementUsers
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: UserId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserId
+          KeyType: HASH
