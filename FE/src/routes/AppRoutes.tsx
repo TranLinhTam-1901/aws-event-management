@@ -10,17 +10,14 @@ import { ForgotPasswordPage } from "../pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/auth/ResetPasswordPage";
 import { ConfirmRegisterPage } from "../pages/auth/ConfirmRegisterPage";
 
-import { UserProfilePage } from "../pages/user/UserProfilePage";
+// import { UserProfilePage } from "../pages/user/UserProfilePage";
 import { MyTicketsPage } from "../pages/user/MyTicketsPage";
 
 import { AdminLayout } from "../components/layout/AdminLayout";
 import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage";
-<<<<<<< HEAD
 import { EventManagementPage } from "../pages/admin/EventManagementPage";
-=======
 import { UserProfilePage } from "../pages/user/UserProfilePage";
 import { CheckInPage } from "../pages/admin/CheckInPage";
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
 
 import { EventCreatePage } from "../pages/admin/EventCreatePage";
 import { EventEditPage } from "../pages/admin/EventEditPage";
@@ -59,11 +56,7 @@ function AppRoutes() {
         {/* Admin Routes */}
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
-<<<<<<< HEAD
-            <Route
-              path="/admin/dashboard"
-              element={<AdminDashboardPage />}
-            />
+
 
             <Route
               path="/admin/events"
@@ -85,12 +78,11 @@ function AppRoutes() {
               path="/admin"
               element={<Navigate to="/admin/dashboard" replace />}
             />
-=======
+
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/check-in" element={<CheckInPage />} />
 
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
           </Route>
         </Route>
 

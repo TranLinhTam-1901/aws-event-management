@@ -48,7 +48,6 @@ Resources:
       Environment:
         Variables:
           EVENT_TABLE_NAME: !Ref EventManagementEventsTable
-<<<<<<< HEAD
           CATEGORY_TABLE_NAME: !Ref EventManagementCategoriesTable
           BANNER_BUCKET_NAME: !Ref EventManagementEventBannersBucket
       Policies:
@@ -58,11 +57,6 @@ Resources:
             TableName: !Ref EventManagementCategoriesTable
         - S3CrudPolicy:
             BucketName: !Ref EventManagementEventBannersBucket
-=======
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref EventManagementEventsTable
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
 
       Events:
         GetEvents:
@@ -70,7 +64,6 @@ Resources:
           Properties:
             Path: /events
             Method: get
-<<<<<<< HEAD
             Auth:
               Authorizer: NONE
 
@@ -149,12 +142,6 @@ Resources:
           Properties:
             Path: /admin/categories/{categoryId}
             Method: delete
-=======
-            # Auth sẽ tự dùng DefaultAuthorizer (CognitoAuthorizer) từ Globals
-            # Nếu route này cần PUBLIC (không cần login), dùng:
-            Auth:
-              Authorizer: NONE
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
 
   UserProfileFunction:
     Type: AWS::Serverless::Function
@@ -250,10 +237,6 @@ Resources:
           Properties:
             Path: /my-tickets
             Method: get
-<<<<<<< HEAD
-=======
-             
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
 
   AttendanceCertificateFunction:
     Type: AWS::Serverless::Function
@@ -291,7 +274,6 @@ Resources:
             Method: post
             Auth:
               Authorizer: NONE
-<<<<<<< HEAD
         GetTicketById:
           Type: Api
           Properties:
@@ -299,9 +281,6 @@ Resources:
             Method: get
             Auth:
               Authorizer: NONE
-=======
-
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
         GetCertificatev2:
           Type: Api
           Properties:
@@ -309,19 +288,6 @@ Resources:
             Method: get
             Auth:
               Authorizer: NONE
-<<<<<<< HEAD
-=======
-
-        GetTicketById:
-          Type: Api
-          Properties:
-            Path: /tickets/{ticketId}
-            Method: get
-            Auth:
-              Authorizer: NONE
-
-
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
             
   EventManagementUserAvatarsBucket:
     Type: AWS::S3::Bucket
@@ -339,7 +305,6 @@ Resources:
               - '*'      # Khi lên production, nên giới hạn lại domain cụ thể của FE
             MaxAge: 3000
 
-<<<<<<< HEAD
   EventManagementEventBannersBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -373,8 +338,6 @@ Resources:
             Action: s3:GetObject
             Resource: !Sub '${EventManagementEventBannersBucket.Arn}/banners/*'
 
-=======
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
   EventManagementEventsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -387,7 +350,6 @@ Resources:
         - AttributeName: EventId
           KeyType: HASH # Khóa chính (Partition Key)
 
-<<<<<<< HEAD
   EventManagementCategoriesTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -431,8 +393,6 @@ Resources:
               - '*'
             MaxAge: 3000
 
-=======
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
   # 2. Bảng lưu trữ Vé tham gia sự kiện (Có kèm GSI để tìm vé theo UserId)
   EventManagementTicketsTable:
     Type: AWS::DynamoDB::Table
@@ -456,8 +416,7 @@ Resources:
           Projection:
             ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
 
-<<<<<<< HEAD
-=======
+
 
   EventManagementCertificatesBucket:
     Type: AWS::S3::Bucket
@@ -490,7 +449,6 @@ Resources:
         - AttributeName: TicketId
           KeyType: RANGE
 
->>>>>>> 1efe319463702ae6111f8d069c7984c53e092196
   EventManagementUsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
