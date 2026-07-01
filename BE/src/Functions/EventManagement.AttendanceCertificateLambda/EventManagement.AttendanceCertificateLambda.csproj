@@ -1,17 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <AWSProjectType>Lambda</AWSProjectType>
-    <!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <!-- Generate ready to run images during publishing to improve cold start time. -->
-    <PublishReadyToRun>true</PublishReadyToRun>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Core" Version="2.8.1" />
-    <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+		<AWSProjectType>Lambda</AWSProjectType>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<PublishReadyToRun>true</PublishReadyToRun>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Amazon.Lambda.Core" Version="2.8.1" />
+		<PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.8.2" />
+		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
+		<PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.21.3" />
+		<PackageReference Include="AWSSDK.S3" Version="4.0.25.3" />
+		<PackageReference Include="AWSSDK.SimpleEmailV2" Version="4.0.14.9" />
+		<PackageReference Include="QuestPDF" Version="2024.10.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../Shared/EventManagement.Shared.csproj" />
+	</ItemGroup>
 </Project>

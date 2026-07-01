@@ -416,6 +416,39 @@ Resources:
           Projection:
             ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
 
+
+
+  EventManagementCertificatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "event-management-certificates-${AWS::AccountId}-${AWS::Region}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+  EventManagementAttendanceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementAttendance
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: EventId
+          AttributeType: S
+        - AttributeName: TicketId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: EventId
+          KeyType: HASH
+        - AttributeName: TicketId
+          KeyType: RANGE
+
   EventManagementUsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
