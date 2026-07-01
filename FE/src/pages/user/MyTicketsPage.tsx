@@ -13,7 +13,7 @@ export const MyTicketsPage: React.FC = () => {
     const [isFetchLoading, setIsFetchLoading] = useState<boolean>(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
 
-    const [inputEventId, setInputEventId] = useState<string>("evt-test-001");
+    const [inputEventId, setInputEventId] = useState<string>("43613581-6512-45ee-afba-fca4d5fdd933");
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const [toast, setToast] = useState<{

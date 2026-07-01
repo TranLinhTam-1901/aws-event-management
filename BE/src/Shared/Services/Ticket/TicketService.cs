@@ -1,5 +1,6 @@
 using Amazon.DynamoDBv2.Model;
 using EventManagement.Shared.DTOs.Tickets;
+using EventManagement.Shared.Helpers;
 using EventManagement.Shared.Repositories;
 
 namespace EventManagement.Shared.Services
@@ -31,7 +32,7 @@ namespace EventManagement.Shared.Services
                 throw new KeyNotFoundException("Sự kiện không tồn tại trên hệ thống!");
             }
 
-            if (eventDto.Status != "ACTIVE")
+            if (!EventStatusHelper.IsActive(eventDto.Status))
             {
                 throw new InvalidOperationException("Sự kiện này hiện không mở đăng ký!");
             }
