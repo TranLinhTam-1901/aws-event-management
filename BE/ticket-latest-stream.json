@@ -1,0 +1,256 @@
+{
+    "events": [
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeLoader.Init(Action`1 customerLoggingAction) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeLoader.cs:line 148\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeInitializer.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeInitializer.cs:line 46\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.<>c__DisplayClass6_0.<<RunLambdaBootstrap>b__0>d.MoveNext() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 75\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "--- End of stack trace from previous location ---\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 358\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 370\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.RunAsync(CancellationToken cancellationToken) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 238\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.RunLambdaBootstrap() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 91\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.Program.Main(String[] args) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Program.cs:line 47\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983038,
+            "message": "at Amazon.Lambda.RuntimeSupport.Program.<Main>(String[] args)\n",
+            "ingestionTime": 1782756983063
+        },
+        {
+            "timestamp": 1782756983068,
+            "message": "INIT_REPORT Init Duration: 304.37 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.Unknown\n",
+            "ingestionTime": 1782756983074
+        },
+        {
+            "timestamp": 1782756983068,
+            "message": "START RequestId: 436d6ee0-69ab-49b2-a948-61740925d67c Version: $LATEST\n",
+            "ingestionTime": 1782756983074
+        },
+        {
+            "timestamp": 1782756983074,
+            "message": "END RequestId: 436d6ee0-69ab-49b2-a948-61740925d67c\n",
+            "ingestionTime": 1782756983083
+        },
+        {
+            "timestamp": 1782756983074,
+            "message": "REPORT RequestId: 436d6ee0-69ab-49b2-a948-61740925d67c\tDuration: 317.78 ms\tBilled Duration: 318 ms\tMemory Size: 256 MB\tMax Memory Used: 106 MB\tStatus: error\tError Type: Runtime.Unknown\n",
+            "ingestionTime": 1782756983083
+        },
+        {
+            "timestamp": 1782756998255,
+            "message": "2026-06-29T18:16:38.238Z\t\tfail\tAmazon.Lambda.RuntimeSupport.ExceptionHandling.LambdaValidationException: Could not find the LambdaSerializerAttribute on the assembly 'EventManagement.RegistrationTicketLambda' or method 'FunctionHandler' while attempting to deserialize input data of type 'Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest'. To use types other than System.IO.Stream as input/output parameters, the assembly or Lambda function should be annotated with Amazon.Lambda.Core.LambdaSerializerAttribute.\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.CreateDeserializeExpression(Object customerSerializerInstance, Type dataType, Expression inStream) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 383\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.ConstructInvokeDelegate(Object customerObject, Object customerSerializerInstance, Boolean isPreJit) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 74\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeLoader.Init(Action`1 customerLoggingAction) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeLoader.cs:line 148\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeInitializer.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeInitializer.cs:line 46\n   at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.<>c__DisplayClass6_0.<<RunLambdaBootstrap>b__0>d.MoveNext() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 75\n--- End of stack trace from previous location ---\n   at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 358\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "Unhandled exception. Amazon.Lambda.RuntimeSupport.ExceptionHandling.LambdaValidationException: Could not find the LambdaSerializerAttribute on the assembly 'EventManagement.RegistrationTicketLambda' or method 'FunctionHandler' while attempting to deserialize input data of type 'Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest'. To use types other than System.IO.Stream as input/output parameters, the assembly or Lambda function should be annotated with Amazon.Lambda.Core.LambdaSerializerAttribute.\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.CreateDeserializeExpression(Object customerSerializerInstance, Type dataType, Expression inStream) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 383\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.ConstructInvokeDelegate(Object customerObject, Object customerSerializerInstance, Boolean isPreJit) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 74\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeLoader.Init(Action`1 customerLoggingAction) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeLoader.cs:line 148\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeInitializer.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeInitializer.cs:line 46\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.<>c__DisplayClass6_0.<<RunLambdaBootstrap>b__0>d.MoveNext() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 75\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "--- End of stack trace from previous location ---\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 358\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 370\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.RunAsync(CancellationToken cancellationToken) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 238\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.RunLambdaBootstrap() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 91\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.Program.Main(String[] args) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Program.cs:line 47\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998336,
+            "message": "at Amazon.Lambda.RuntimeSupport.Program.<Main>(String[] args)\n",
+            "ingestionTime": 1782756998372
+        },
+        {
+            "timestamp": 1782756998371,
+            "message": "INIT_REPORT Init Duration: 319.03 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.Unknown\n",
+            "ingestionTime": 1782756998384
+        },
+        {
+            "timestamp": 1782756998371,
+            "message": "START RequestId: 970ca112-65f0-466e-8fa3-efa94183be2d Version: $LATEST\n",
+            "ingestionTime": 1782756998384
+        },
+        {
+            "timestamp": 1782756998378,
+            "message": "END RequestId: 970ca112-65f0-466e-8fa3-efa94183be2d\n",
+            "ingestionTime": 1782756998384
+        },
+        {
+            "timestamp": 1782756998378,
+            "message": "REPORT RequestId: 970ca112-65f0-466e-8fa3-efa94183be2d\tDuration: 332.29 ms\tBilled Duration: 333 ms\tMemory Size: 256 MB\tMax Memory Used: 106 MB\tStatus: error\tError Type: Runtime.Unknown\n",
+            "ingestionTime": 1782756998384
+        },
+        {
+            "timestamp": 1782757005888,
+            "message": "2026-06-29T18:16:45.870Z\t\tfail\tAmazon.Lambda.RuntimeSupport.ExceptionHandling.LambdaValidationException: Could not find the LambdaSerializerAttribute on the assembly 'EventManagement.RegistrationTicketLambda' or method 'FunctionHandler' while attempting to deserialize input data of type 'Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest'. To use types other than System.IO.Stream as input/output parameters, the assembly or Lambda function should be annotated with Amazon.Lambda.Core.LambdaSerializerAttribute.\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.CreateDeserializeExpression(Object customerSerializerInstance, Type dataType, Expression inStream) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 383\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.ConstructInvokeDelegate(Object customerObject, Object customerSerializerInstance, Boolean isPreJit) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 74\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeLoader.Init(Action`1 customerLoggingAction) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeLoader.cs:line 148\n   at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeInitializer.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeInitializer.cs:line 46\n   at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.<>c__DisplayClass6_0.<<RunLambdaBootstrap>b__0>d.MoveNext() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 75\n--- End of stack trace from previous location ---\n   at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 358\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "Unhandled exception. Amazon.Lambda.RuntimeSupport.ExceptionHandling.LambdaValidationException: Could not find the LambdaSerializerAttribute on the assembly 'EventManagement.RegistrationTicketLambda' or method 'FunctionHandler' while attempting to deserialize input data of type 'Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest'. To use types other than System.IO.Stream as input/output parameters, the assembly or Lambda function should be annotated with Amazon.Lambda.Core.LambdaSerializerAttribute.\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.CreateDeserializeExpression(Object customerSerializerInstance, Type dataType, Expression inStream) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 383\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.InvokeDelegateBuilder.ConstructInvokeDelegate(Object customerObject, Object customerSerializerInstance, Boolean isPreJit) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/InvokeDelegateBuilder.cs:line 74\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeLoader.Init(Action`1 customerLoggingAction) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeLoader.cs:line 148\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.Bootstrap.UserCodeInitializer.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/UserCodeInitializer.cs:line 46\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.<>c__DisplayClass6_0.<<RunLambdaBootstrap>b__0>d.MoveNext() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 75\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "--- End of stack trace from previous location ---\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 358\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.InitializeAsync() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 370\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.LambdaBootstrap.RunAsync(CancellationToken cancellationToken) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Bootstrap/LambdaBootstrap.cs:line 238\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.RuntimeSupportInitializer.RunLambdaBootstrap() in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/RuntimeSupportInitializer.cs:line 91\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.Program.Main(String[] args) in /src/Repo/Libraries/src/Amazon.Lambda.RuntimeSupport/Program.cs:line 47\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005961,
+            "message": "at Amazon.Lambda.RuntimeSupport.Program.<Main>(String[] args)\n",
+            "ingestionTime": 1782757006001
+        },
+        {
+            "timestamp": 1782757005992,
+            "message": "INIT_REPORT Init Duration: 318.77 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.Unknown\n",
+            "ingestionTime": 1782757006014
+        },
+        {
+            "timestamp": 1782757005992,
+            "message": "START RequestId: 7c5e4ffc-9457-4dd0-8e01-1fbb986e4802 Version: $LATEST\n",
+            "ingestionTime": 1782757006014
+        },
+        {
+            "timestamp": 1782757005999,
+            "message": "END RequestId: 7c5e4ffc-9457-4dd0-8e01-1fbb986e4802\n",
+            "ingestionTime": 1782757006014
+        },
+        {
+            "timestamp": 1782757005999,
+            "message": "REPORT RequestId: 7c5e4ffc-9457-4dd0-8e01-1fbb986e4802\tDuration: 330.88 ms\tBilled Duration: 331 ms\tMemory Size: 256 MB\tMax Memory Used: 106 MB\tStatus: error\tError Type: Runtime.Unknown\n",
+            "ingestionTime": 1782757006014
+        }
+    ],
+    "nextForwardToken": "f/39756809741679028568075221701333974296036535746015920131/s",
+    "nextBackwardToken": "b/39756809229631618064613583720786413539450240512932708356/s"
+}

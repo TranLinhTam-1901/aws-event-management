@@ -16,5 +16,7 @@ namespace EventManagement.Shared.Constants
         public const string RequiredTools = "RequiredTools";
         public const string MaxSlots = "MaxSlots";
         public const string RegisteredCount = "RegisteredCount";
+        public const string IsVisible = "IsVisible";
+        public const string CategoryId = "CategoryId";
     }
 }
