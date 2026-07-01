@@ -130,6 +130,31 @@ export const MyTicketsPage: React.FC = () => {
         }
     };
 
+    const handleDownloadCertificate = async (ticket: Ticket) => {
+        try {
+            const data = await ticketService.getCertificate(ticket.ticketId);
+
+            if (data.success && data.downloadUrl) {
+                showToast("success", "Đang mở chứng chỉ PDF...");
+                window.open(data.downloadUrl, "_blank");
+                await loadTickets(true);
+            } else {
+                showToast("error", data.message || "Không thể tải chứng chỉ.");
+            }
+        } catch (error) {
+            console.error("Lỗi tải chứng chỉ:", error);
+
+            if (axios.isAxiosError(error)) {
+                showToast(
+                    "error",
+                    error.response?.data?.message || "Không thể tải chứng chỉ."
+                );
+            } else {
+                showToast("error", "Không thể tải chứng chỉ.");
+            }
+        }
+    };
+
     if (isAuthLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -412,20 +437,31 @@ export const MyTicketsPage: React.FC = () => {
                                                     EVENT ID: {ticket.eventId}
                                                 </span>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        alert("Đã bấm QR");
-                                                        console.log("CLICK QR", ticket);
-                                                        handleViewQr(ticket);
-                                                    }}
-                                                    className="flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-800 transition cursor-pointer"
-                                                >
-                                                    <span className="material-symbols-outlined text-base">
-                                                        qr_code
-                                                    </span>
-                                                    TEST QR KY
-                                                </button>
+                                                <div className="flex items-center gap-3">
+                                                    {ticket.status === "CHECKED_IN" && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDownloadCertificate(ticket)}
+                                                            className="flex items-center gap-1 text-emerald-600 font-semibold hover:text-emerald-800 transition cursor-pointer"
+                                                        >
+                                                            <span className="material-symbols-outlined text-base">
+                                                                workspace_premium
+                                                            </span>
+                                                            Tải chứng chỉ
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleViewQr(ticket)}
+                                                        className="flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-800 transition cursor-pointer"
+                                                    >
+                                                        <span className="material-symbols-outlined text-base">
+                                                            qr_code
+                                                        </span>
+                                                        Xem QR
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

@@ -24,6 +24,7 @@ import { EventEditPage } from "../pages/admin/EventEditPage";
 import { CategoryManagementPage } from "../pages/admin/CategoryManagementPage";
 import { EventListPage } from "../pages/public/EventListPage";
 import { EventDetailPage } from "../pages/public/EventDetailPage";
+import { MyCertificatesPage } from "../pages/user/MyCertificatesPage";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -51,6 +52,7 @@ function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path="/profile/me" element={<UserProfilePage />} />
           <Route path="/my-tickets" element={<MyTicketsPage />} />
+          <Route path="/certificates" element={<MyCertificatesPage />} />
         </Route>
 
         {/* Admin Routes */}

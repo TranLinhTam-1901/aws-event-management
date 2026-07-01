@@ -201,6 +201,19 @@ public class Function
 
         var status = GetString(ticket, "Status");
 
+        // Kiểm tra riêng trường hợp đã check-in
+        if (status == "CHECKED_IN")
+        {
+            return CreateResponse(HttpStatusCode.Conflict, new
+            {
+                success = false,
+                message = "Vé này đã được check-in trước đó. Không cần check-in lại.",
+                ticketId,
+                status
+            });
+        }
+
+        // Các trạng thái không hợp lệ khác
         if (status != "CONFIRMED"
             && status != "SUCCESS"
             && status != "PENDING_CHECKIN"

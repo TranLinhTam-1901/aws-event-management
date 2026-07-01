@@ -66,7 +66,7 @@ export const ticketService = {
         method: "QR" | "MANUAL"
     ): Promise<CheckInResponse> => {
         const response = await axiosInstance.post<CheckInResponse>(
-            `${import.meta.env.VITE_API_BASE_URL}/tickets/checkin`,
+            "/tickets/checkin",
             {
                 ticketId,
                 method,
