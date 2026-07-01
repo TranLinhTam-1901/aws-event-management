@@ -18,13 +18,13 @@ export const normalizeEventStatus = (status: string): NormalizedEventStatus => {
 export const getEventStatusLabel = (status: string): string => {
   switch (normalizeEventStatus(status)) {
     case 'Active':
-      return 'Active';
+      return 'Đang mở';
     case 'Ended':
-      return 'Ended';
+      return 'Đã kết thúc';
     case 'Cancelled':
-      return 'Cancelled';
+      return 'Đã hủy';
     case 'Draft':
-      return 'Draft';
+      return 'Bản nháp';
     default:
       return status;
   }

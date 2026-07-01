@@ -15,4 +15,3 @@ namespace EventManagement.Shared.Constants
         public const string CreatedAt = "CreatedAt";
     }
 }
-

@@ -11,14 +11,14 @@ export const EventManagementPage: React.FC = () => {
         <>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">
-                    Event Management
+                    Quản lý sự kiện
                 </h1>
 
                 <AppButton
                     variant="primary"
                     onClick={() => navigate("/admin/events/create")}
                 >
-                    Create Event
+                    Tạo sự kiện
                 </AppButton>
             </div>
 

@@ -5,7 +5,7 @@ export const EventCreatePage: React.FC = () => {
     return (
         <>
             <h1 className="text-3xl font-bold mb-8">
-                Create Event
+                Tạo sự kiện
             </h1>
 
             <div className="max-w-2xl">
