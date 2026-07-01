@@ -56,10 +56,7 @@ function AppRoutes() {
         {/* Admin Routes */}
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
-            {/* <Route
-              path="/admin/dashboard"
-              element={<AdminDashboardPage />}
-            /> */}
+
 
             <Route
               path="/admin/events"
@@ -81,6 +78,7 @@ function AppRoutes() {
               path="/admin"
               element={<Navigate to="/admin/dashboard" replace />}
             />
+
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/check-in" element={<CheckInPage />} />
 

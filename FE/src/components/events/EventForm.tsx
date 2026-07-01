@@ -90,7 +90,7 @@ export const EventForm: React.FC = () => {
         setPreviewUrl(getEventBannerSrc(event));
       } catch (error) {
         console.error(error);
-        alert("Failed to load event for editing.");
+        alert("Tải sự kiện để chỉnh sửa không thành công.");
       } finally {
         setLoading(false);
       }
@@ -151,16 +151,16 @@ export const EventForm: React.FC = () => {
 
       if (eventId) {
         await eventService.updateEvent(eventId, payload);
-        alert("Event updated successfully!");
+        alert("Cập nhật sự kiện thành công!");
       } else {
         await eventService.createEvent(payload);
-        alert("Event created successfully!");
+        alert("Tạo sự kiện thành công!");
       }
 
       navigate("/admin/events");
     } catch (error) {
       console.error(error);
-      alert("Failed to save event.");
+      alert("Lưu sự kiện không thành công.");
     } finally {
       setLoading(false);
     }
@@ -169,7 +169,7 @@ export const EventForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
         <input
           type="text"
           name="title"
@@ -177,12 +177,12 @@ export const EventForm: React.FC = () => {
           onChange={handleChange}
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Event title"
+          placeholder="Tiêu đề sự kiện"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
         <textarea
           name="description"
           value={formData.description}
@@ -190,12 +190,12 @@ export const EventForm: React.FC = () => {
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={4}
-          placeholder="Event description"
+          placeholder="Mô tả sự kiện"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Địa điểm</label>
         <input
           type="text"
           name="location"
@@ -203,13 +203,13 @@ export const EventForm: React.FC = () => {
           onChange={handleChange}
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Event location"
+          placeholder="Địa điểm tổ chức"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Banner Image
+          Ảnh banner
         </label>
         <EventBannerUpload
           previewUrl={previewUrl}
@@ -219,7 +219,7 @@ export const EventForm: React.FC = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
         <select
           name="categoryId"
           value={formData.categoryId}
@@ -227,7 +227,7 @@ export const EventForm: React.FC = () => {
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Select a category</option>
+          <option value="">Chọn danh mục</option>
           {categories.map((category) => (
             <option key={category.categoryId} value={category.categoryId}>
               {category.name}
@@ -236,50 +236,50 @@ export const EventForm: React.FC = () => {
         </select>
         {!categories.length && (
           <p className="text-sm text-amber-600 mt-1">
-            No active categories yet. Create one in Category Management first.
+            Chưa có danh mục hoạt động. Tạo danh mục trước.
           </p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Speaker Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Tên diễn giả</label>
         <input
           type="text"
           name="speakerName"
           value={formData.speakerName}
           onChange={handleChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Speaker name"
+          placeholder="Tên diễn giả"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Prerequisites</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Yêu cầu trước</label>
         <textarea
           name="prerequisites"
           value={formData.prerequisites}
           onChange={handleChange}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="What attendees should know before joining"
+          placeholder="Những điều cần biết trước khi tham gia"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Required Tools</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Công cụ cần thiết</label>
         <textarea
           name="requiredTools"
           value={formData.requiredTools}
           onChange={handleChange}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Tools or software needed for the event"
+          placeholder="Công cụ hoặc phần mềm cần sử dụng"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian bắt đầu</label>
           <input
             type="datetime-local"
             name="startTime"
@@ -290,7 +290,7 @@ export const EventForm: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian kết thúc</label>
           <input
             type="datetime-local"
             name="endTime"
@@ -303,7 +303,7 @@ export const EventForm: React.FC = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Total Slots</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng tối đa</label>
         <input
           type="number"
           name="maxSlots"
@@ -312,7 +312,7 @@ export const EventForm: React.FC = () => {
           min={eventId ? Math.max(registeredCount, 1) : 1}
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Maximum number of slots"
+          placeholder="Số lượng chỗ ngồi tối đa"
         />
         {eventId && registeredCount > 0 && (
           <p className="text-sm text-gray-500 mt-1">
@@ -323,10 +323,10 @@ export const EventForm: React.FC = () => {
 
       <AppButton variant="primary" type="submit" disabled={loading}>
         {loading
-          ? 'Saving...'
+          ? 'Đang lưu...'
           : eventId
-            ? 'Update Event'
-            : 'Create Event'}
+            ? 'Cập nhật sự kiện'
+            : 'Tạo sự kiện'}
       </AppButton>
     </form>
   );
