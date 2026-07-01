@@ -41,7 +41,7 @@ export const CategoryManagementPage: React.FC = () => {
       await loadCategories();
     } catch (error) {
       console.error(error);
-      alert('Failed to create category.');
+      alert('Tạo danh mục không thành công.');
     } finally {
       setSaving(false);
     }
@@ -56,12 +56,12 @@ export const CategoryManagementPage: React.FC = () => {
       await loadCategories();
     } catch (error) {
       console.error(error);
-      alert('Failed to update category.');
+      alert('Cập nhật danh mục không thành công.');
     }
   };
 
   const handleDeactivate = async (category: Category) => {
-    const confirmed = window.confirm(`Deactivate category "${category.name}"?`);
+    const confirmed = window.confirm(`Ngừng hoạt động danh mục "${category.name}"?`);
     if (!confirmed) {
       return;
     }
@@ -71,14 +71,14 @@ export const CategoryManagementPage: React.FC = () => {
       await loadCategories();
     } catch (error) {
       console.error(error);
-      alert('Failed to deactivate category.');
+      alert('Ngừng hoạt động danh mục không thành công.');
     }
   };
 
   return (
     <>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Event Categories</h1>
+        <h1 className="text-3xl font-bold">Quản lý danh mục sự kiện</h1>
       </div>
 
       <form
@@ -87,7 +87,7 @@ export const CategoryManagementPage: React.FC = () => {
       >
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category Name
+            Tên danh mục
           </label>
           <input
             type="text"
@@ -95,20 +95,20 @@ export const CategoryManagementPage: React.FC = () => {
             onChange={(e) => setName(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Tech, AI, AWS..."
+            placeholder="Ví dụ: Tech, AI, AWS..."
           />
         </div>
 
         <AppButton variant="primary" type="submit" disabled={saving}>
-          {saving ? 'Creating...' : 'Create Category'}
+          {saving ? 'Đang tạo...' : 'Tạo danh mục'}
         </AppButton>
       </form>
 
       {loading ? (
-        <div>Loading categories...</div>
+        <div>Đang tải danh mục...</div>
       ) : !categories.length ? (
         <div className="bg-white rounded-lg shadow p-6 text-gray-600">
-          No categories yet. Create one above.
+          Chưa có danh mục nào. Tạo danh mục phía trên.
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -116,13 +116,13 @@ export const CategoryManagementPage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name
+                  Tên
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
+                  Trạng thái
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
+                  Hành động
                 </th>
               </tr>
             </thead>
@@ -138,7 +138,7 @@ export const CategoryManagementPage: React.FC = () => {
                           : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {category.isActive ? 'Active' : 'Inactive'}
+                      {category.isActive ? 'Hoạt động' : 'Ngừng hoạt động'}
                     </span>
                   </td>
                   <td className="px-6 py-4 flex gap-2">
@@ -146,13 +146,13 @@ export const CategoryManagementPage: React.FC = () => {
                       onClick={() => handleToggleActive(category)}
                       className="px-3 py-1 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
                     >
-                      {category.isActive ? 'Deactivate' : 'Activate'}
+                      {category.isActive ? 'Ngừng hoạt động' : 'Kích hoạt'}
                     </button>
                     <button
                       onClick={() => handleDeactivate(category)}
                       className="px-3 py-1 text-sm rounded bg-red-100 text-red-700 hover:bg-red-200"
                     >
-                      Soft Delete
+                      Xóa mềm
                     </button>
                   </td>
                 </tr>

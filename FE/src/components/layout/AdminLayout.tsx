@@ -17,17 +17,13 @@ export const AdminLayout: React.FC = () => {
   };
 
   // Các danh mục menu của Admin để map tự động
+
   const menuItems = [
     { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
-    { text: "Event Management", icon: "calendar_month", path: "/admin/events" },
-    { text: "Categories", icon: "category", path: "/admin/categories" },
+    { text: "Quản lý sự kiện", icon: "calendar_month", path: "/admin/events" },
+    { text: "Danh mục", icon: "category", path: "/admin/categories" },
     { text: "Check-in QR", icon: "qr_code_scanner", path: "/admin/check-in" },
   ];
-    // const menuItems = [
-    //     { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
-    //     { text: "Quản lý Sự kiện", icon: "calendar_month", path: "/admin/events" },
-    //     { text: "Check-in QR", icon: "qr_code_scanner", path: "/admin/check-in" },
-    // ];
 
   return (
     <div className="min-h-screen bg-slate-100 font-inter flex">
@@ -38,7 +34,7 @@ export const AdminLayout: React.FC = () => {
         <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950 gap-2">
           <span className="material-symbols-outlined text-blue-500 font-bold">admin_panel_settings</span>
           <span className="font-bold text-white tracking-wide uppercase text-sm">
-            Event Management
+            Quản lý sự kiện
           </span>
         </div>
 
