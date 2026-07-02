@@ -1,3 +1,4 @@
+using System.Globalization;
 using EventManagement.Shared.DTOs.Events;
 
 namespace EventManagement.Shared.Helpers;
@@ -33,8 +34,31 @@ public static class EventStatusHelper
     public static bool IsEnded(string status) =>
         Normalize(status) == Ended;
 
-    public static bool HasEnded(string endTime) =>
-        DateTime.TryParse(endTime, out var end) && end < DateTime.Now;
+    public static bool HasEnded(string endTime)
+    {
+        if (string.IsNullOrWhiteSpace(endTime))
+        {
+            return false;
+        }
+
+        var parsed = TryParseToUtc(endTime);
+        return parsed.HasValue && parsed.Value < DateTime.UtcNow;
+    }
+
+    private static DateTime? TryParseToUtc(string value)
+    {
+        if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out var parsed))
+        {
+            return parsed;
+        }
+
+        if (DateTime.TryParse(value, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
 
     public static EventResponseDto ApplyEffectiveStatus(EventResponseDto evt)
     {
