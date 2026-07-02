@@ -1,3 +1,4 @@
+using System.Globalization;
 using Amazon.S3;
 using Amazon.S3.Model;
 using EventManagement.Shared.DTOs.Events;
@@ -317,17 +318,32 @@ public class EventService : IEventService
         return (categoryId, string.Empty);
     }
 
+    private static bool TryParseToUtc(string value, out DateTime parsed)
+    {
+        if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out parsed))
+        {
+            return true;
+        }
+
+        if (DateTime.TryParse(value, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out parsed))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private static void ValidateEvent(
         string startTime,
         string endTime,
         int maxSlots)
     {
-        if (!DateTime.TryParse(startTime, out var start))
+        if (!TryParseToUtc(startTime, out var start))
         {
             throw new Exception("Invalid StartTime");
         }
 
-        if (!DateTime.TryParse(endTime, out var end))
+        if (!TryParseToUtc(endTime, out var end))
         {
             throw new Exception("Invalid EndTime");
         }

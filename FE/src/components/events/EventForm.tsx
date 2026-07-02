@@ -27,6 +27,15 @@ const toDatetimeLocalValue = (value: string): string => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+const toUtcISOString = (value: string): string => {
+  if (!value) {
+    return value;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+};
+
 export const EventForm: React.FC = () => {
   const { eventId } = useParams<{ eventId?: string }>();
   const navigate = useNavigate();
@@ -147,7 +156,12 @@ export const EventForm: React.FC = () => {
         bannerUrl = uploadInfo.bannerUrl;
       }
 
-      const payload = { ...formData, bannerUrl };
+      const payload = {
+        ...formData,
+        bannerUrl,
+        startTime: toUtcISOString(formData.startTime),
+        endTime: toUtcISOString(formData.endTime),
+      };
 
       if (eventId) {
         await eventService.updateEvent(eventId, payload);

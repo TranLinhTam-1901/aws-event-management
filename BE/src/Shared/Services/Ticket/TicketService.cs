@@ -37,6 +37,11 @@ namespace EventManagement.Shared.Services
                 throw new InvalidOperationException("Sự kiện này hiện không mở đăng ký!");
             }
 
+            if (EventStatusHelper.HasEnded(eventDto.EndTime))
+            {
+                throw new InvalidOperationException("Sự kiện đã kết thúc, không thể đăng ký thêm!");
+            }
+
             try
             {
                 // 2. Thực hiện cập nhật số lượng đăng ký có điều kiện nguyên tử trên DynamoDB

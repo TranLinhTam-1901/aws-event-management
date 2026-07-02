@@ -13,9 +13,6 @@ export const MyTicketsPage: React.FC = () => {
     const [isFetchLoading, setIsFetchLoading] = useState<boolean>(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
 
-    const [inputEventId, setInputEventId] = useState<string>("evt-test-001");
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
     const [toast, setToast] = useState<{
         type: "success" | "error";
         message: string;
@@ -73,41 +70,6 @@ export const MyTicketsPage: React.FC = () => {
             };
         }
     }, [isAuthenticated, isAuthLoading]);
-
-    const handleRegisterTest = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!inputEventId.trim()) {
-            showToast("error", "Vui lòng nhập mã Event ID để thử nghiệm!");
-            return;
-        }
-
-        try {
-            setIsSubmitting(true);
-            await ticketService.registerTicket(inputEventId.trim());
-            showToast(
-                "success",
-                `Đăng ký thành công vé cho Sự kiện: ${inputEventId}!`
-            );
-
-            await loadTickets(true);
-        } catch (err) {
-            console.error("Lỗi đăng ký vé:", err);
-
-            if (axios.isAxiosError(err)) {
-                const errMsg =
-                    err.response?.data?.message ||
-                    "Đăng ký thất bại. Vui lòng kiểm tra lại.";
-                showToast("error", errMsg);
-            } else if (err instanceof Error) {
-                showToast("error", err.message);
-            } else {
-                showToast("error", "Đăng ký thất bại. Vui lòng kiểm tra lại.");
-            }
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     const handleViewQr = async (ticket: Ticket) => {
         if (!ticket.ticketId) {
@@ -216,69 +178,8 @@ export const MyTicketsPage: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="grid lg:grid-cols-3 gap-8 items-start">
-                    <div className="lg:col-span-1 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl tracking-wider uppercase">
-                            Sandbox Test
-                        </div>
-
-                        <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-amber-500">
-                                construction
-                            </span>
-                            Hộp Đăng Ký Thử Nghiệm
-                        </h3>
-
-                        <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-                            Do Module Event chưa triển khai giao diện, ông hãy dùng Form này
-                            nhập ID từ DynamoDB để giả lập luồng nạp vé thật lên AWS Cloud.
-                        </p>
-
-                        <form onSubmit={handleRegisterTest} className="space-y-5">
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                                    Event ID dưới DynamoDB *
-                                </label>
-
-                                <div className="relative">
-                                    <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
-                                        database
-                                    </span>
-
-                                    <input
-                                        type="text"
-                                        value={inputEventId}
-                                        onChange={(e) => setInputEventId(e.target.value)}
-                                        placeholder="Ví dụ: evt-test-001"
-                                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-700 font-mono text-sm bg-slate-50/50"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 shadow-sm transition disabled:opacity-60 cursor-pointer"
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <div className="w-5 h-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                                        đang gửi lên AWS...
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="material-symbols-outlined text-xl">
-                                            send
-                                        </span>
-                                        Mô phỏng event(Đăng ký)
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
-
-                    <div className="lg:col-span-2 space-y-4">
+                <div className="space-y-4">
+                    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm min-h-[360px] flex flex-col">
                         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm min-h-[360px] flex flex-col">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                                 <h2 className="font-bold text-slate-800 flex items-center gap-2">
@@ -331,8 +232,7 @@ export const MyTicketsPage: React.FC = () => {
                                         Tài khoản này chưa đăng ký bất kỳ chiếc vé nào.
                                     </p>
                                     <p className="text-xs max-w-sm mt-1">
-                                        Hãy dùng Hộp thử nghiệm bên cạnh nhập ID sự kiện để nạp
-                                        chiếc vé đầu tiên!
+                                        Bạn chưa có vé nào. Hãy đăng ký một sự kiện để xem vé ở đây.
                                     </p>
                                 </div>
                             ) : (

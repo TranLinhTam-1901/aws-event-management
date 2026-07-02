@@ -229,8 +229,11 @@ export const EventDetail: React.FC = () => {
           <h2 className="text-xl font-bold mb-4">Đăng ký</h2>
 
           {registrationSuccess ? (
-            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-green-800">
-              {REGISTRATION_MESSAGES.success}
+            <div className="space-y-3 rounded-lg bg-green-50 border border-green-200 p-4 text-green-800">
+              <div>{REGISTRATION_MESSAGES.success}</div>
+              <AppButton variant="secondary" onClick={() => navigate('/my-tickets')}>
+                Xem vé của tôi
+              </AppButton>
             </div>
           ) : canRegister ? (
             <div className="space-y-3">
