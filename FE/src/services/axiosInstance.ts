@@ -10,6 +10,8 @@ const axiosInstance = axios.create({
   },
 });
 
+console.log("API BASE URL =", apiBaseUrl);
+
 // Add request interceptor to include JWT token
 axiosInstance.interceptors.request.use(
     async (config) => {

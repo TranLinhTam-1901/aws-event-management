@@ -12,6 +12,35 @@ export const CheckInPage: React.FC = () => {
     const [result, setResult] = useState<CheckInResponse | null>(null);
     const [loading, setLoading] = useState(false);
 
+    const getCheckInErrorMessage = (error: any) => {
+        const status = error?.response?.status;
+        const apiMessage = error?.response?.data?.message;
+
+        // Lỗi nghiệp vụ từ Backend
+        if (status === 400 || status === 409) {
+            if (
+                apiMessage?.toLowerCase().includes("checked") ||
+                apiMessage?.toLowerCase().includes("check-in")
+            ) {
+                return "Vé này đã được check-in trước đó. Không cần check-in lại.";
+            }
+
+            return apiMessage || "Không thể check-in vé này.";
+        }
+
+        if (status === 404) {
+            return "Không tìm thấy vé.";
+        }
+
+        // Không nhận được response => lỗi mạng/API
+        if (!error.response) {
+            return "Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng và thử lại.";
+        }
+
+        // Lỗi hệ thống
+        return "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.";
+    };
+
     const handleSearchTicket = async (id?: string) => {
         const finalTicketId = (id || ticketId).trim();
 
@@ -78,7 +107,7 @@ export const CheckInPage: React.FC = () => {
             console.error(error);
             setResult({
                 success: false,
-                message: "Check-in QR thất bại hoặc lỗi kết nối API.",
+                message: getCheckInErrorMessage(error),
                 ticketId: scannedTicketId,
             });
         } finally {
@@ -114,7 +143,7 @@ export const CheckInPage: React.FC = () => {
             console.error(error);
             setResult({
                 success: false,
-                message: "Check-in thất bại hoặc lỗi kết nối API.",
+                message: getCheckInErrorMessage(error),
                 ticketId: ticket.ticketId,
             });
         } finally {
