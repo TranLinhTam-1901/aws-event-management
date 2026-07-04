@@ -66,11 +66,11 @@ export const EventDetail: React.FC = () => {
     checkRegistrationStatus();
   }, [checkRegistrationStatus]);
 
-  const handleRegistrationSuccess = () => {
-    setRegistrationSuccess(true);
-    setIsAlreadyRegistered(true);
-    loadEvent();
-  };
+  // const handleRegistrationSuccess = () => {
+  //   setRegistrationSuccess(true);
+  //   setIsAlreadyRegistered(true);
+  //   loadEvent();
+  // };
 
   const handleRegistrationBlocked = () => {
     setRegisterMessage(null);

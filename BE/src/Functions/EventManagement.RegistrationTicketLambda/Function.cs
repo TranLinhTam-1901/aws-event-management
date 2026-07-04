@@ -9,6 +9,8 @@ using System.Net;
 using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using Environment = System.Environment;
+using Amazon.EventBridge;
+using Amazon.EventBridge.Model;
 // Assembly attribute để AWS Lambda biết cách serialize/deserialize JSON sang object .NET
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -26,7 +28,7 @@ public class Function
     private readonly IUserProfileService _userProfileService;
     private readonly string _userTableName;
 
-
+    private readonly IAmazonEventBridge _eventBridgeClient;
     private readonly IAmazonLambda _lambdaClient;
     private readonly string _notificationFunctionName;
     public Function()
@@ -46,30 +48,75 @@ public class Function
         var userProfileRepository = new UserProfileRepository(_dynamoDbClient, _userTableName);
         _userProfileService = new UserProfileService(userProfileRepository);
 
-         _lambdaClient = new AmazonLambdaClient();
-    _notificationFunctionName = Environment.GetEnvironmentVariable("NOTIFICATION_FUNCTION_NAME") ?? "notification-lambda";
+        // _lambdaClient = new AmazonLambdaClient();
+        
+        // _notificationFunctionName = Environment.GetEnvironmentVariable("NOTIFICATION_FUNCTION_NAME") ?? "notification-lambda";
 
+    _eventBridgeClient = new AmazonEventBridgeClient();
 
-    }
-
-    private async Task InvokeNotificationAsync(string action, object ticket, ILambdaContext context)
+    }private async Task PublishTicketRegisteredEventAsync(
+    string eventId, string registrationId, string userId,
+    string fullName, string email, string type,
+    string eventTitle, string startTime, string location,
+    ILambdaContext context)
 {
     try
     {
-        var payload = JsonSerializer.Serialize(new { action, ticket });
-        await _lambdaClient.InvokeAsync(new InvokeRequest
+        var detail = new
         {
-            FunctionName   = _notificationFunctionName,
-            InvocationType = InvocationType.Event,
-            Payload        = payload
+            eventId,
+            registrationId,
+            userId,
+            fullName,
+            email,
+            type, // "RegistrationConfirmed" hoặc "WaitingList"
+            data = new Dictionary<string, string>
+            {
+                ["EventTitle"] = eventTitle,
+                ["StartTime"] = startTime,
+                ["Location"] = location
+            }
+        };
+
+        await _eventBridgeClient.PutEventsAsync(new PutEventsRequest
+        {
+            Entries = new List<PutEventsRequestEntry>
+            {
+                new PutEventsRequestEntry
+                {
+                    Source = "eventmanagement.ticket",
+                    DetailType = "TicketRegistered",
+                    Detail = JsonSerializer.Serialize(detail),
+                    EventBusName = "default"
+                }
+            }
         });
-        context.Logger.LogLine($"[Notification] Invoke gửi mail thành công");
+
+        context.Logger.LogLine("[Notification] PutEvents gửi EventBridge thành công");
     }
     catch (Exception ex)
     {
-        context.Logger.LogLine($"[Notification Warning] Invoke thất bại: {ex.Message}");
+        context.Logger.LogLine($"[Notification Warning] PutEvents thất bại: {ex.Message}");
     }
 }
+//     private async Task InvokeNotificationAsync(string action, object ticket, ILambdaContext context)
+// {
+//     try
+//     {
+//         var payload = JsonSerializer.Serialize(new { action, ticket });
+//         await _lambdaClient.InvokeAsync(new InvokeRequest
+//         {
+//             FunctionName   = _notificationFunctionName,
+//             InvocationType = InvocationType.Event,
+//             Payload        = payload
+//         });
+//         context.Logger.LogLine($"[Notification] Invoke gửi mail thành công");
+//     }
+//     catch (Exception ex)
+//     {
+//         context.Logger.LogLine($"[Notification Warning] Invoke thất bại: {ex.Message}");
+//     }
+// }
 
 
     /// <summary>
@@ -171,13 +218,12 @@ public class Function
             // 🔴 THAY THẾ: Truyền finalFullName (Đã đồng bộ) thay cho thuộc tính cũ từ token
             var ticketResult = await _ticketService.RegisterTicketAsync(eventId, userClaims.UserId, userClaims.Email, finalFullName);
             
-            await InvokeNotificationAsync("confirmation", new
-            {
-                Email     = ticketResult.UserEmail,
-                EventId   = ticketResult.EventId,
-                TicketId  = ticketResult.TicketId,
-                EventName = ticketResult.EventTitle
-            }, context);
+            await PublishTicketRegisteredEventAsync(
+    ticketResult.EventId, ticketResult.TicketId, userClaims.UserId,
+    finalFullName, ticketResult.UserEmail,
+    ticketResult.Status == "WAITING" ? "WaitingList" : "RegistrationConfirmed",
+    ticketResult.EventTitle, ticketResult.EventStartTime, ticketResult.EventLocation,
+    context);
 
             context.Logger.LogLine($"Đăng ký vé thành công! Mã vé: [{ticketResult.TicketId}]");
             return CreateResponse(HttpStatusCode.Created, ticketResult);

@@ -41,7 +41,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
             </p>
 
             <p className="text-sm text-gray-600 mb-1">
-                Địa điểm: {ticket.E}
+                Địa điểm: {ticket.eventLocation}
             </p>
 
             <p className="text-sm text-gray-600 mb-1">
