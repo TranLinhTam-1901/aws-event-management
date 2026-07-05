@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import { AnalyticsPage } from "../pages/admin/AnalyticsPage";
 import { AdminRoute } from "./AdminRoute";
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -80,8 +80,8 @@ function AppRoutes() {
               path="/admin"
               element={<Navigate to="/admin/dashboard" replace />}
             />
-
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/analytics" element={<AnalyticsPage />} /> 
           <Route path="/admin/check-in" element={<CheckInPage />} />
 
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

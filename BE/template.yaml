@@ -226,6 +226,12 @@ Resources:
         #           - dynamodb:Scan
         #         # AWS tự động hiểu và dịch chuỗi này thành ARN chuẩn khi deploy, bảo mật tuyệt đối!
         #         Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventManagementUsers"
+        # Quyền publish sự kiện TicketRegistered lên EventBridge, để NotificationFunction lắng nghe và gửi email
+        - Statement:
+            - Effect: Allow
+              Action:
+                - events:PutEvents
+              Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/default"
       Events:
         RegisterTicket:
           Type: Api
@@ -416,39 +422,6 @@ Resources:
           Projection:
             ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
 
-
-
-  EventManagementCertificatesBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "event-management-certificates-${AWS::AccountId}-${AWS::Region}"
-      CorsConfiguration:
-        CorsRules:
-          - AllowedHeaders:
-              - '*'
-            AllowedMethods:
-              - GET
-              - PUT
-            AllowedOrigins:
-              - '*'
-            MaxAge: 3000
-
-  EventManagementAttendanceTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: EventManagementAttendance
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: EventId
-          AttributeType: S
-        - AttributeName: TicketId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: EventId
-          KeyType: HASH
-        - AttributeName: TicketId
-          KeyType: RANGE
-
   EventManagementUsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -460,3 +433,189 @@ Resources:
       KeySchema:
         - AttributeName: UserId
           KeyType: HASH
+
+  NotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: NotificationLambda
+      CodeUri: src/Functions/EventManagement.NotificationLambda/
+      Handler: EventManagement.NotificationLambda::EventManagement.NotificationLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          SES_FROM_EMAIL: khacanh204@gmail.com
+          NOTIFICATION_LOG_TABLE_NAME: !Ref EventManagementNotificationLogTable
+          EVENT_TABLE_NAME: !Ref EventManagementEventsTable
+          TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
+          USER_TABLE_NAME: !Ref EventManagementUsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventManagementNotificationLogTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementTicketsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementUsersTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        GetNotificationLogs:
+          Type: Api
+          Properties:
+            Path: /admin/notifications
+            Method: get
+        OnTicketRegistered:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source: ["eventmanagement.ticket"]
+              detail-type: ["TicketRegistered"]
+        EventReminderSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(1 hour)"
+            Name: EventReminderSchedule
+            Description: "Quét sự kiện sắp diễn ra và gửi email nhắc"
+
+  AnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AnalyticsLambda
+      CodeUri: src/Functions/EventManagement.AnalyticsLambda/
+      Handler: EventManagement.AnalyticsLambda::EventManagement.AnalyticsLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          EVENT_TABLE_NAME: !Ref EventManagementEventsTable
+          TICKET_TABLE_NAME: !Ref EventManagementTicketsTable
+          ATTENDANCE_TABLE_NAME: !Ref EventManagementAttendanceTable
+          USER_TABLE_NAME: !Ref EventManagementUsersTable
+          NOTIFICATION_LOG_TABLE_NAME: !Ref EventManagementNotificationLogTable
+          CERTIFICATE_BUCKET_NAME: !Ref EventManagementCertificatesBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementTicketsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementAttendanceTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementUsersTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventManagementNotificationLogTable
+        - S3ReadPolicy:
+            BucketName: !Ref EventManagementCertificatesBucket
+      Events:
+        GetDashboardSummary:
+          Type: Api
+          Properties:
+            Path: /admin/analytics/dashboard
+            Method: get
+        GetEventAnalytics:
+          Type: Api
+          Properties:
+            Path: /admin/analytics/events/{eventId}
+            Method: get
+
+  EventManagementNotificationLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementNotificationLog
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: LogId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LogId
+          KeyType: HASH
+
+  # ============================================
+  # FRONTEND: S3 (lưu file build) + CloudFront (phục vụ HTTPS, cache, routing SPA)
+  # ============================================
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "event-management-frontend-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # OAC: cơ chế bảo mật hiện đại, thay cho cách cũ (Origin Access Identity)
+  # để CloudFront đọc được S3 mà không cần bucket public
+  FrontendOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-frontend-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        HttpVersion: http2
+        PriceClass: PriceClass_100
+        Origins:
+          - Id: FrontendS3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt FrontendOAC.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: FrontendS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized (AWS built-in)
+          Compress: true
+        # Quan trọng cho React Router: mọi path không tìm thấy file thật trên S3 (403/404)
+        # đều trả về index.html để React Router tự xử lý routing phía client
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}"
+
+Outputs:
+  FrontendCloudFrontDomain:
+    Description: "Domain CloudFront để truy cập Frontend (dùng domain này, không dùng URL S3 trực tiếp)"
+    Value: !GetAtt FrontendDistribution.DomainName
+  FrontendBucketName:
+    Description: "Tên S3 Bucket chứa file build Frontend, dùng để upload qua aws s3 sync"
+    Value: !Ref FrontendBucket
+  FrontendDistributionId:
+    Description: "CloudFront Distribution ID, dùng để tạo cache invalidation sau mỗi lần deploy"
+    Value: !Ref FrontendDistribution

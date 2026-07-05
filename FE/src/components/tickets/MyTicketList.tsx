@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TicketCard } from "./TicketCard";
-import ticketService, { type Ticket } from "../../services/ticketService";
+import { ticketService, type Ticket } from "../../services/ticketService";
 
 export const MyTicketList: React.FC = () => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -10,7 +10,7 @@ export const MyTicketList: React.FC = () => {
     useEffect(() => {
         const loadTickets = async () => {
             try {
-                const data = await ticketService.getUserTickets();
+                const data = await ticketService.getMyTickets();
                 setTickets(data);
             } catch (err) {
                 console.error("Load tickets failed:", err);
