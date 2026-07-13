@@ -13,7 +13,7 @@ public interface IUserProfileService
     );
 
     Task<UserProfileDto?> GetMyProfileAsync(string userId);
-    Task<List<UserProfileDto>> GetAllProfilesAsync();
+    Task<List<UserProfileDto>> GetAllProfilesAsync(string? email = null);
     Task<UserProfileDto> UpdateProfileAsync(string userId, UpdateProfileRequestDto dto);
     Task<UserProfileDto> SetUserStatusAsync(string userId, UserStatus status);
     Task<GetAvatarUploadUrlResponseDto> GenerateAvatarUploadUrlAsync(string userId, string contentType);

@@ -14,20 +14,26 @@ const statusStyles: Record<number, string> = {
   2: 'bg-red-100 text-red-700',
 };
 
+const PAGE_SIZE = 5;
+
 export const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const loadUsers = async () => {
+  const loadUsers = async (email?: string) => {
     setLoading(true);
     try {
-      const data = await userProfileService.getAllUsers();
+      const data = await userProfileService.getAllUsers(email?.trim() || undefined);
       setUsers(data);
+      setCurrentPage(1);
     } catch (error) {
       console.error(error);
       toast.error('Không thể tải danh sách người dùng.');
       setUsers([]);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -36,6 +42,25 @@ export const UserManagementPage: React.FC = () => {
   useEffect(() => {
     void loadUsers();
   }, []);
+
+  const handleSearch = async (event?: React.FormEvent) => {
+    event?.preventDefault();
+    await loadUsers(searchTerm);
+  };
+
+  const handleReset = async () => {
+    setSearchTerm('');
+    await loadUsers();
+  };
+
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const pagedUsers = users.slice(startIndex, startIndex + PAGE_SIZE);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
 
   const handleStatusChange = async (user: UserProfile, nextStatus: number) => {
     setUpdatingUserId(user.userId);
@@ -60,10 +85,38 @@ export const UserManagementPage: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 px-3 py-3 md:flex-row md:items-center md:justify-end md:px-4">
+            <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Nhập email..."
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-sky-500 sm:w-56"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="rounded-lg bg-sky-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Tìm
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
+
           {loading ? (
             <div className="p-8 text-slate-600">Đang tải danh sách người dùng...</div>
           ) : users.length === 0 ? (
-            <div className="p-8 text-slate-600">Chưa có người dùng nào.</div>
+            <div className="p-8 text-slate-600">
+              {searchTerm ? `Không tìm thấy người dùng nào với email chứa "${searchTerm}".` : 'Chưa có người dùng nào.'}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
@@ -76,7 +129,7 @@ export const UserManagementPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
-                  {users.map((user) => {
+                  {pagedUsers.map((user) => {
                     const isLocked = user.status === 2;
                     return (
                       <tr key={user.userId}>
@@ -104,6 +157,35 @@ export const UserManagementPage: React.FC = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {!loading && users.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                Hiển thị {startIndex + 1}-{Math.min(startIndex + PAGE_SIZE, users.length)} trên {users.length} tài khoản
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Trước
+                </button>
+                <span className="rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-700 shadow-sm">
+                  {currentPage}/{totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sau
+                </button>
+              </div>
             </div>
           )}
         </div>

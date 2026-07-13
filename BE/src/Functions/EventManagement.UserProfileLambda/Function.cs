@@ -127,7 +127,7 @@ public class Function
         ILambdaContext context
     )
     {
-        if (claims.IsAdmin || !path.StartsWith("/profile", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(claims.UserId))
         {
             return null;
         }
@@ -135,7 +135,7 @@ public class Function
         var profile = await _userProfileService.GetMyProfileAsync(claims.UserId);
         if (profile != null && profile.Status == UserStatus.BLOCKED)
         {
-            context.Logger.LogLine($"Blocked account attempted access: {claims.UserId}");
+            context.Logger.LogLine($"Blocked account attempted access: {claims.UserId} on path {path}");
             return new APIGatewayProxyResponse
             {
                 StatusCode = 403,
@@ -300,8 +300,11 @@ public class Function
                 };
             }
 
+            string? email = null;
+            request.QueryStringParameters?.TryGetValue("email", out email);
+
             context.Logger.LogLine("Fetching all users for admin");
-            var users = await _userProfileService.GetAllProfilesAsync();
+            var users = await _userProfileService.GetAllProfilesAsync(email);
 
             return new APIGatewayProxyResponse
             {

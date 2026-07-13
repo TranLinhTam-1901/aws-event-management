@@ -37,15 +37,26 @@ public class UserProfileRepository : IUserProfileRepository
         return UserProfileDynamoMapper.FromDynamoItem(response.Item);
     }
 
-    public async Task<List<UserProfileDto>> GetAllAsync()
+    public async Task<List<UserProfileDto>> GetAllAsync(string? email = null)
     {
         var response = await _dynamoDb.ScanAsync(new ScanRequest
         {
             TableName = _tableName
         });
 
-        return response.Items
+        var users = response.Items
             .Select(UserProfileDynamoMapper.FromDynamoItem)
+            .ToList();
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return users;
+        }
+
+        var normalizedEmail = email.Trim();
+        return users
+            .Where(user => !string.IsNullOrWhiteSpace(user.Email)
+                && user.Email.Contains(normalizedEmail, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 

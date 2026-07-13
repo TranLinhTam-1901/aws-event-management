@@ -69,7 +69,7 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">{user?.fullName || "Quản trị viên"}</p>
-            <p className="text-xs text-slate-500 truncate">Role: ADMIN ({user?.role})</p>
+            {/* <p className="text-xs text-slate-500 truncate">Role: ADMIN ({user?.role})</p> */}
           </div>
         </div>
       </aside>

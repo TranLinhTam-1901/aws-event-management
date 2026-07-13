@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PublicLayout } from "../../components/layout/PublicLayout";
 import { useAuth } from "../../context/AuthContext";
 import { signInWithRedirect } from "aws-amplify/auth";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +16,7 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
@@ -23,7 +25,16 @@ export const LoginPage: React.FC = () => {
       setErrorMessage(storedBlockedMessage);
       sessionStorage.removeItem("blocked_account_message");
     }
-  }, []);
+
+    if (location.state?.verified) {
+      const verifiedEmail = location.state?.email || "";
+      setSuccessMessage(
+        verifiedEmail
+          ? `Xác thực tài khoản thành công cho ${verifiedEmail}. Bạn có thể đăng nhập ngay.`
+          : "Xác thực tài khoản thành công. Bạn có thể đăng nhập ngay."
+      );
+    }
+  }, [location.state]);
 
   useEffect(() => {
     // Nếu hệ thống đã check auth xong (isLoading === false) và xác nhận đã login
@@ -101,6 +112,12 @@ export const LoginPage: React.FC = () => {
             {errorMessage && (
               <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
                 {errorMessage}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-600">
+                {successMessage}
               </div>
             )}
 

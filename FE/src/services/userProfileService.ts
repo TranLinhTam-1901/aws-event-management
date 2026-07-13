@@ -3,15 +3,24 @@ import axios from 'axios';
 
 
 export interface BackendUserProfile {
-  UserId: string;
-  Email: string;
-  FullName: string;
-  AvatarUrl: string;
-  Role: number;        // Enum UserRole (0 = USER, 1 = ADMIN)
-  Status: number;      // Enum UserStatus (ví dụ: 0 = ACTIVE)
-  CreatedAt: string;
-  UpdatedAt: string;
-  LastLoginAt: string;
+  UserId?: string;
+  userId?: string;
+  Email?: string;
+  email?: string;
+  FullName?: string;
+  fullName?: string;
+  AvatarUrl?: string;
+  avatarUrl?: string;
+  Role?: number | string;
+  role?: number | string;
+  Status?: number | string;
+  status?: number | string;
+  CreatedAt?: string;
+  createdAt?: string;
+  UpdatedAt?: string;
+  updatedAt?: string;
+  LastLoginAt?: string;
+  lastLoginAt?: string;
 }
 
 // Đồng bộ 100% với: InitProfileResponseDto
@@ -50,19 +59,51 @@ export interface InitProfileResponse {
 }
 
 class UserProfileService {
+  private normalizeStatus(value: unknown): number {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['active', 'enabled', '0'].includes(normalized)) return 0;
+      if (['inactive', 'disabled', '1'].includes(normalized)) return 1;
+      if (['blocked', 'block', 'locked', '2'].includes(normalized)) return 2;
+
+      const parsedNumber = Number(normalized);
+      if (!Number.isNaN(parsedNumber)) return parsedNumber;
+    }
+
+    return 0;
+  }
+
+  private normalizeRole(value: unknown): number {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'admin' || normalized === '1') return 1;
+      if (normalized === 'user' || normalized === '0') return 0;
+    }
+
+    return 0;
+  }
+
   // Hàm bổ trợ: Chuyển đổi dữ liệu từ PascalCase (C#) -> camelCase (ReactJS)
   private normalizeProfile(beProfile: BackendUserProfile): UserProfile {
     return {
-      userId: beProfile?.UserId || '',
-      email: beProfile?.Email || '',
-      fullName: beProfile?.FullName || '',
-      avatarUrl: beProfile?.AvatarUrl || '',
-      role: beProfile?.Role ?? 0,          // Mặc định 0 (USER) nếu null
-      isAdmin: beProfile?.Role === 1,      // Tự động hóa logic check admin dựa trên Enum từ BE
-      status: beProfile?.Status ?? 0,
-      createdAt: beProfile?.CreatedAt || '',
-      updatedAt: beProfile?.UpdatedAt || '',
-      lastLoginAt: beProfile?.LastLoginAt || '',
+      userId: beProfile?.UserId || beProfile?.userId || '',
+      email: beProfile?.Email || beProfile?.email || '',
+      fullName: beProfile?.FullName || beProfile?.fullName || '',
+      avatarUrl: beProfile?.AvatarUrl || beProfile?.avatarUrl || '',
+      role: this.normalizeRole(beProfile?.Role ?? beProfile?.role ?? 0),
+      isAdmin: this.normalizeRole(beProfile?.Role ?? beProfile?.role ?? 0) === 1,
+      status: this.normalizeStatus(beProfile?.Status ?? beProfile?.status ?? 0),
+      createdAt: beProfile?.CreatedAt || beProfile?.createdAt || '',
+      updatedAt: beProfile?.UpdatedAt || beProfile?.updatedAt || '',
+      lastLoginAt: beProfile?.LastLoginAt || beProfile?.lastLoginAt || '',
     };
   }
 
@@ -106,8 +147,10 @@ class UserProfileService {
   }
 
 
-  async getAllUsers(): Promise<UserProfile[]> {
-    const response = await axiosInstance.get('/admin/users');
+  async getAllUsers(email?: string): Promise<UserProfile[]> {
+    const response = await axiosInstance.get('/admin/users', {
+      params: email ? { email } : undefined,
+    });
     return response.data.map((user: BackendUserProfile) => this.normalizeProfile(user));
   }
 

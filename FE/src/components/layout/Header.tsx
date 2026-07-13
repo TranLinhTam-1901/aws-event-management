@@ -4,18 +4,16 @@ import { useAuth } from "../../context/AuthContext";
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Lắng nghe sự thay đổi URL để tự động reset menu
+  const location = useLocation();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [showMenu, setShowMenu] = useState(false);
-  const [prevPathname, setPrevPathname] = useState(location.pathname);
 
-// Kiểm tra trực tiếp trong thân Component (đang render)
-if (location.pathname !== prevPathname) {
-  setPrevPathname(location.pathname);
-  setShowMenu(false); // React sẽ tự động gom chuyến render này lại, không bị lỗi linter
-}
+  useEffect(() => {
+    setShowMenu(false);
+  }, [location.pathname]);
+
   // TỰ ĐỘNG ĐÓNG MENU KHI CLICK RA NGOÀI (Click Outside)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

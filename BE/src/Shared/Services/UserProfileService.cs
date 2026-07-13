@@ -72,9 +72,9 @@ public class UserProfileService : IUserProfileService
         return await _userProfileRepository.GetByUserIdAsync(userId);
     }
 
-    public async Task<List<UserProfileDto>> GetAllProfilesAsync()
+    public async Task<List<UserProfileDto>> GetAllProfilesAsync(string? email = null)
     {
-        return await _userProfileRepository.GetAllAsync();
+        return await _userProfileRepository.GetAllAsync(email);
     }
 
     public async Task<UserProfileDto> UpdateProfileAsync(string userId, UpdateProfileRequestDto dto)
