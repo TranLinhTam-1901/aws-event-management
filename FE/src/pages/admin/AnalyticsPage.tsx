@@ -45,7 +45,6 @@ export const AnalyticsPage: React.FC = () => {
   }, []);
 
   // Tải thống kê riêng khi chọn 1 sự kiện
-  
   useEffect(() => {
     if (!selectedEventId) {
       setEventAnalytics(null);

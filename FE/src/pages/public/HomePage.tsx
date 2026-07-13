@@ -12,7 +12,7 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     if (!isLoading && isAuthenticated && user && user.role === 1) {
       console.log("Phát hiện tài khoản Admin tại trang chủ, đang điều hướng về Dashboard...");
-      navigate("/admin/dashboard", { replace: true });
+      navigate("/admin/analytics", { replace: true });
     }
   }, [isAuthenticated, user, isLoading, navigate]);
 

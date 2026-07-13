@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
       console.log("User đã login, tự động đá ra khỏi trang login. Role:", user.role);
       
       if (user.role === 1) {
-        navigate("/admin/dashboard", { replace: true });
+        navigate("/admin/analytics", { replace: true });
       } else {
         navigate("/", { replace: true });
       }
