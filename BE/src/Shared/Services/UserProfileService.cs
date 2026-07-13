@@ -72,6 +72,10 @@ public class UserProfileService : IUserProfileService
         return await _userProfileRepository.GetByUserIdAsync(userId);
     }
 
+    public async Task<List<UserProfileDto>> GetAllProfilesAsync()
+    {
+        return await _userProfileRepository.GetAllAsync();
+    }
 
     public async Task<UserProfileDto> UpdateProfileAsync(string userId, UpdateProfileRequestDto dto)
     {
@@ -88,6 +92,21 @@ public class UserProfileService : IUserProfileService
         // Lấy lại dữ liệu mới nhất để trả về cho Client
         var updatedProfile = await _userProfileRepository.GetByUserIdAsync(userId);
         return updatedProfile ?? throw new Exception("Profile not found after update.");
+    }
+
+    public async Task<UserProfileDto> SetUserStatusAsync(string userId, UserStatus status)
+    {
+        var profile = await _userProfileRepository.GetByUserIdAsync(userId);
+        if (profile == null)
+        {
+            throw new ArgumentException("User profile not found.");
+        }
+
+        var now = DateTime.UtcNow.ToString("O");
+        await _userProfileRepository.UpdateStatusAsync(userId, status, now);
+
+        var updatedProfile = await _userProfileRepository.GetByUserIdAsync(userId);
+        return updatedProfile ?? throw new Exception("Profile not found after status update.");
     }
 
     // ==========================================

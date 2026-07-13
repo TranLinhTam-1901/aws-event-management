@@ -106,16 +106,15 @@ class UserProfileService {
   }
 
 
-  //Chưa dùng 
-  // async getAllUsers(): Promise<UserProfile[]> {
-  //   const response = await axiosInstance.get('/admin/users');
-  //   return response.data;
-  // }
+  async getAllUsers(): Promise<UserProfile[]> {
+    const response = await axiosInstance.get('/admin/users');
+    return response.data.map((user: BackendUserProfile) => this.normalizeProfile(user));
+  }
 
-  // async getUserById(userId: string): Promise<UserProfile> {
-  //   const response = await axiosInstance.get(`/admin/users/${userId}`);
-  //   return response.data;
-  // }
+  async updateUserStatus(userId: string, status: number): Promise<UserProfile> {
+    const response = await axiosInstance.patch(`/admin/users/${userId}`, { status });
+    return this.normalizeProfile(response.data);
+  }
 }
 
 export default new UserProfileService();

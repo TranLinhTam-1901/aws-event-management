@@ -18,6 +18,14 @@ export const LoginPage: React.FC = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    const storedBlockedMessage = sessionStorage.getItem("blocked_account_message");
+    if (storedBlockedMessage) {
+      setErrorMessage(storedBlockedMessage);
+      sessionStorage.removeItem("blocked_account_message");
+    }
+  }, []);
+
+  useEffect(() => {
     // Nếu hệ thống đã check auth xong (isLoading === false) và xác nhận đã login
     if (!isLoading && isAuthenticated && user) {
       console.log("User đã login, tự động đá ra khỏi trang login. Role:", user.role);
@@ -47,7 +55,11 @@ export const LoginPage: React.FC = () => {
 
     } catch (error) {
       console.error("Login error:", error);
-      setErrorMessage("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");
+      if (error instanceof Error && error.message === "ACCOUNT_BLOCKED") {
+        setErrorMessage("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ qua email admin@eventmanagement.com để được mở lại.");
+      } else {
+        setErrorMessage("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");
+      }
     } finally {
       setLoading(false);
     }

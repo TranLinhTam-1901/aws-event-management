@@ -104,7 +104,7 @@ public class EventRouteHandler
                 return JsonResponse(HttpStatusCode.Created, created);
             }
 
-            if (request.HttpMethod == "PUT" &&
+            if ((request.HttpMethod == "PUT" || request.HttpMethod == "PATCH") &&
                 request.Path.StartsWith("/admin/categories/"))
             {
                 var categoryId = request.Path.Split('/').Last();

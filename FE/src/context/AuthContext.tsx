@@ -4,6 +4,27 @@ import type { UserProfile } from "../services/userProfileService";
 import userProfileService from "../services/userProfileService";
 import { Hub } from "aws-amplify/utils";
 
+const ADMIN_CONTACT_EMAIL = import.meta.env.VITE_ADMIN_CONTACT_EMAIL || "admin@eventmanagement.com";
+const BLOCKED_ACCOUNT_MESSAGE = `Tài khoản của bạn đã bị khóa. Vui lòng liên hệ qua email ${ADMIN_CONTACT_EMAIL} để được mở lại.`;
+
+const isBlockedAccountError = (error: unknown) => {
+  if (!error) return false;
+
+  const status = (error as { response?: { status?: number } })?.response?.status;
+  const message = String(
+    (error as { response?: { data?: { message?: string; Message?: string } } })?.response?.data?.message
+    || (error as { response?: { data?: { message?: string; Message?: string } } })?.response?.data?.Message
+    || (error as { message?: string })?.message
+    || ""
+  );
+
+  return status === 403 && /blocked|block/i.test(message);
+};
+
+const persistBlockedMessage = () => {
+  sessionStorage.setItem("blocked_account_message", BLOCKED_ACCOUNT_MESSAGE);
+};
+
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -24,22 +45,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleBlockedAccount = async () => {
+    sessionStorage.setItem("blocked_account_message", BLOCKED_ACCOUNT_MESSAGE);
+
+    try {
+      await cognitoAuthService.logout();
+    } catch (logoutError) {
+      console.error("Logout after blocked account failed:", logoutError);
+    }
+
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("idToken");
+    localStorage.removeItem("remember_me");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("idToken");
+    setUser(null);
+  };
+
   const checkAuth = async () => {
     try {
       setIsLoading(true);
 
-      // (Giữ nguyên) 1. Kiểm tra trạng thái login của Cognito trước
       await cognitoAuthService.getCurrentUser();
       await cognitoAuthService.getAuthTokens();
 
-      // ================= THAY THẾ ĐOẠN ĐỌC PAYLOAD CŨ BẰNG ĐOẠN NÀY =================
-      // Gọi API Backend lấy Profile & Role thật từ DynamoDB thay vì tự suy ra ở FE
       const profile = await userProfileService.getCurrentUserProfile();
-      setUser(profile);
-      // ============================================================================
+      if (profile.status === 2) {
+        await handleBlockedAccount();
+        window.location.assign("/login");
+        return;
+      }
 
+      setUser(profile);
     } catch (error) {
-      console.log("User not authenticated or profile fetch failed:", error); // Cập nhật log cho đúng nghĩa
+      if (isBlockedAccountError(error)) {
+        await handleBlockedAccount();
+        window.location.assign("/login");
+        return;
+      }
+
+      console.log("User not authenticated or profile fetch failed:", error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -55,10 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // 1. Gọi Cognito xác thực tài khoản
       await cognitoAuthService.login(email, password);
 
-      // 3. Gọi API khởi tạo profile (nếu chưa có) và nạp profile user từ DynamoDB lên state
       try {
-        await userProfileService.initProfile();
+        const initResponse = await userProfileService.initProfile();
+        if (initResponse.profile.status === 2) {
+          await handleBlockedAccount();
+          throw new Error("ACCOUNT_BLOCKED");
+        }
       } catch (initError) {
+        if (isBlockedAccountError(initError)) {
+          await handleBlockedAccount();
+          throw new Error("ACCOUNT_BLOCKED");
+        }
+
         console.error("Init profile error inside context:", initError);
       }
       

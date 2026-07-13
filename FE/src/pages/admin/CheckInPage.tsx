@@ -97,74 +97,6 @@ export const CheckInPage: React.FC = () => {
         return "Đã xảy ra lỗi hệ thống. Vui lòng thử lại.";
     };
 
-    const loadEvents = useCallback(async () => {
-        setLoadingEvents(true);
-        setEventsError("");
-
-        try {
-            const response =
-                await axiosInstance.get<EventsApiResponse>("/events");
-
-            const responseData = response.data;
-
-            let rawEvents: RawEvent[] = [];
-
-            if (Array.isArray(responseData)) {
-                rawEvents = responseData;
-            } else {
-                rawEvents =
-                    responseData.events ??
-                    responseData.items ??
-                    responseData.data ??
-                    [];
-            }
-
-            const mappedEvents = rawEvents
-                .map((event): EventOption | null => {
-                    const eventId = event.eventId ?? event.EventId;
-                    const title = event.title ?? event.Title;
-                    const startTime =
-                        event.startTime ?? event.StartTime;
-
-                    if (!eventId || !title) {
-                        return null;
-                    }
-
-                    return {
-                        eventId,
-                        title,
-                        startTime,
-                    };
-                })
-                .filter(
-                    (event): event is EventOption => event !== null
-                )
-                .sort((first, second) => {
-                    if (!first.startTime || !second.startTime) {
-                        return 0;
-                    }
-
-                    return (
-                        new Date(first.startTime).getTime() -
-                        new Date(second.startTime).getTime()
-                    );
-                });
-
-            setEvents(mappedEvents);
-
-            if (mappedEvents.length > 0) {
-                setSelectedEventId((current) =>
-                    current || mappedEvents[0].eventId
-                );
-            }
-        } catch (error) {
-            console.error("Không thể tải sự kiện:", error);
-            setEventsError("Không thể tải danh sách sự kiện.");
-        } finally {
-            setLoadingEvents(false);
-        }
-    }, []);
-
     const loadAttendees = useCallback(async (eventId: string) => {
         if (!eventId) {
             setAttendeeData(null);
@@ -195,16 +127,112 @@ export const CheckInPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        void loadEvents();
-    }, [loadEvents]);
+        let isMounted = true;
+
+        const fetchEvents = async () => {
+            setLoadingEvents(true);
+            setEventsError("");
+
+            try {
+                const response = await axiosInstance.get<EventsApiResponse>("/events");
+                const responseData = response.data;
+
+                let rawEvents: RawEvent[] = [];
+
+                if (Array.isArray(responseData)) {
+                    rawEvents = responseData;
+                } else {
+                    rawEvents = responseData.events ?? responseData.items ?? responseData.data ?? [];
+                }
+
+                const mappedEvents = rawEvents
+                    .map((event): EventOption | null => {
+                        const eventId = event.eventId ?? event.EventId;
+                        const title = event.title ?? event.Title;
+                        const startTime = event.startTime ?? event.StartTime;
+
+                        if (!eventId || !title) {
+                            return null;
+                        }
+
+                        return {
+                            eventId,
+                            title,
+                            startTime,
+                        };
+                    })
+                    .filter((event): event is EventOption => event !== null)
+                    .sort((first, second) => {
+                        if (!first.startTime || !second.startTime) {
+                            return 0;
+                        }
+
+                        return new Date(first.startTime).getTime() - new Date(second.startTime).getTime();
+                    });
+
+                if (isMounted) {
+                    setEvents(mappedEvents);
+                    if (mappedEvents.length > 0) {
+                        setSelectedEventId((current) => current || mappedEvents[0].eventId);
+                    }
+                }
+            } catch (error) {
+                console.error("Không thể tải sự kiện:", error);
+                if (isMounted) {
+                    setEventsError("Không thể tải danh sách sự kiện.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoadingEvents(false);
+                }
+            }
+        };
+
+        void fetchEvents();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     useEffect(() => {
-        if (selectedEventId) {
-            void loadAttendees(selectedEventId);
-        } else {
-            setAttendeeData(null);
-        }
-    }, [selectedEventId, loadAttendees]);
+        let isMounted = true;
+
+        const fetchAttendees = async () => {
+            if (!selectedEventId) {
+                if (isMounted) {
+                    setAttendeeData(null);
+                }
+                return;
+            }
+
+            setLoadingAttendees(true);
+            setAttendeesError("");
+
+            try {
+                const data = await attendeeService.getEventAttendees(selectedEventId);
+                if (isMounted) {
+                    setAttendeeData(data);
+                }
+            } catch (error) {
+                console.error("Không thể tải danh sách người tham dự:", error);
+                if (isMounted) {
+                    setAttendeeData(null);
+                    setAttendeesError("Không thể tải danh sách người tham dự.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoadingAttendees(false);
+                }
+            }
+        };
+
+        void fetchAttendees();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedEventId]);
 
     const handleScanSuccess = useCallback(
         async (rawValue: string) => {
@@ -318,11 +346,6 @@ export const CheckInPage: React.FC = () => {
                                 value={event.eventId}
                             >
                                 {event.title}
-                                {event.startTime
-                                    ? ` — ${formatDateTime(
-                                        event.startTime
-                                    )}`
-                                    : ""}
                             </option>
                         ))}
                     </select>

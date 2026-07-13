@@ -60,7 +60,7 @@ class CategoryService {
     categoryId: string,
     data: CategoryUpdateRequest
   ): Promise<Category> {
-    const response = await axiosInstance.put(
+    const response = await axiosInstance.patch(
       `/admin/categories/${categoryId}`,
       data
     );

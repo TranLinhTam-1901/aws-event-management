@@ -21,6 +21,7 @@ import { CheckInPage } from "../pages/admin/CheckInPage";
 import { EventCreatePage } from "../pages/admin/EventCreatePage";
 import { EventEditPage } from "../pages/admin/EventEditPage";
 import { CategoryManagementPage } from "../pages/admin/CategoryManagementPage";
+import { UserManagementPage } from "../pages/admin/UserManagementPage";
 import { EventListPage } from "../pages/public/EventListPage";
 import { EventDetailPage } from "../pages/public/EventDetailPage";
 import { MyCertificatesPage } from "../pages/user/MyCertificatesPage";
@@ -74,6 +75,10 @@ function AppRoutes() {
             <Route
               path="/admin/categories"
               element={<CategoryManagementPage />}
+            />
+            <Route
+              path="/admin/users"
+              element={<UserManagementPage />}
             />
             <Route
               path="/admin"

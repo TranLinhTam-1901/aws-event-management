@@ -37,6 +37,18 @@ public class UserProfileRepository : IUserProfileRepository
         return UserProfileDynamoMapper.FromDynamoItem(response.Item);
     }
 
+    public async Task<List<UserProfileDto>> GetAllAsync()
+    {
+        var response = await _dynamoDb.ScanAsync(new ScanRequest
+        {
+            TableName = _tableName
+        });
+
+        return response.Items
+            .Select(UserProfileDynamoMapper.FromDynamoItem)
+            .ToList();
+    }
+
     public async Task CreateAsync(UserProfileDto profile)
     {
         await _dynamoDb.PutItemAsync(new PutItemRequest
@@ -80,7 +92,6 @@ public class UserProfileRepository : IUserProfileRepository
             {
                 [UserProfileFields.UserId] = new AttributeValue { S = userId }
             },
-            // Chỉ cập nhật các trường liên quan đến thông tin cá nhân được phép thay đổi
             UpdateExpression = "SET #fullName = :fullName, #avatarUrl = :avatarUrl, #updatedAt = :updatedAt",
             ExpressionAttributeNames = new Dictionary<string, string>
             {
@@ -92,6 +103,29 @@ public class UserProfileRepository : IUserProfileRepository
             {
                 [":fullName"] = new AttributeValue { S = fullName },
                 [":avatarUrl"] = new AttributeValue { S = avatarUrl },
+                [":updatedAt"] = new AttributeValue { S = updatedAt }
+            }
+        });
+    }
+
+    public async Task UpdateStatusAsync(string userId, UserStatus status, string updatedAt)
+    {
+        await _dynamoDb.UpdateItemAsync(new UpdateItemRequest
+        {
+            TableName = _tableName,
+            Key = new Dictionary<string, AttributeValue>
+            {
+                [UserProfileFields.UserId] = new AttributeValue { S = userId }
+            },
+            UpdateExpression = "SET #status = :status, #updatedAt = :updatedAt",
+            ExpressionAttributeNames = new Dictionary<string, string>
+            {
+                ["#status"] = UserProfileFields.Status,
+                ["#updatedAt"] = UserProfileFields.UpdatedAt
+            },
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                [":status"] = new AttributeValue { S = status.ToString() },
                 [":updatedAt"] = new AttributeValue { S = updatedAt }
             }
         });
