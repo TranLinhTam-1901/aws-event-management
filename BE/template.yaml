@@ -137,6 +137,12 @@ Resources:
             Path: /admin/categories/{categoryId}
             Method: put
 
+        PatchCategory:
+          Type: Api
+          Properties:
+            Path: /admin/categories/{categoryId}
+            Method: patch
+
         DeleteCategory:
           Type: Api
           Properties:
@@ -188,6 +194,18 @@ Resources:
           Properties:
             Path: /profile/avatar-upload-url
             Method: get
+
+        GetAdminUsers:
+          Type: Api
+          Properties:
+            Path: /admin/users
+            Method: get
+
+        UpdateAdminUserStatus:
+          Type: Api
+          Properties:
+            Path: /admin/users/{userId}
+            Method: patch
 
   TicketFunction:
     Type: AWS::Serverless::Function

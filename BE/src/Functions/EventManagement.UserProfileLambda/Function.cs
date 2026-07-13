@@ -1,6 +1,8 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.DynamoDBv2;
+using EventManagement.Shared.DTOs.Users;
+using EventManagement.Shared.Models.Enums;
 using EventManagement.Shared.Repositories;
 using EventManagement.Shared.Services;
 using System.Text.Json;
@@ -52,6 +54,12 @@ public class Function
                 };
             }
 
+            var accountBlockResponse = await CheckAccountStatusAsync(request.Path, claims, context);
+            if (accountBlockResponse != null)
+            {
+                return accountBlockResponse;
+            }
+
             if (request.HttpMethod == "POST" && request.Path == "/profile/init")
             {
                 return await HandleInitProfile(claims, context);
@@ -67,6 +75,14 @@ public class Function
             else if (request.HttpMethod == "GET" && request.Path == "/profile/avatar-upload-url")
             {
                 return await HandleGetAvatarUploadUrl(request, claims, context);
+            }
+            else if (request.HttpMethod == "GET" && request.Path == "/admin/users")
+            {
+                return await HandleGetAllUsers(request, claims, context);
+            }
+            else if (request.HttpMethod == "PATCH" && request.Path.StartsWith("/admin/users/"))
+            {
+                return await HandleUpdateUserStatus(request, claims, context);
             }
 
             return new APIGatewayProxyResponse
@@ -103,6 +119,32 @@ public class Function
             { "Access-Control-Allow-Headers", "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token" },
             { "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS" }
         };
+    }
+
+    private async Task<APIGatewayProxyResponse?> CheckAccountStatusAsync(
+        string path,
+        JwtClaims claims,
+        ILambdaContext context
+    )
+    {
+        if (string.IsNullOrWhiteSpace(claims.UserId))
+        {
+            return null;
+        }
+
+        var profile = await _userProfileService.GetMyProfileAsync(claims.UserId);
+        if (profile != null && profile.Status == UserStatus.BLOCKED)
+        {
+            context.Logger.LogLine($"Blocked account attempted access: {claims.UserId} on path {path}");
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 403,
+                Headers = CorsHeaders(),
+                Body = JsonSerializer.Serialize(new { message = "Account is blocked" })
+            };
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -240,6 +282,99 @@ public class Function
         }
     }
 
+    private async Task<APIGatewayProxyResponse> HandleGetAllUsers(
+        APIGatewayProxyRequest request,
+        JwtClaims claims,
+        ILambdaContext context
+    )
+    {
+        try
+        {
+            if (!claims.IsAdmin)
+            {
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 403,
+                    Headers = CorsHeaders(),
+                    Body = JsonSerializer.Serialize(new { message = "Forbidden" })
+                };
+            }
+
+            string? email = null;
+            request.QueryStringParameters?.TryGetValue("email", out email);
+
+            context.Logger.LogLine("Fetching all users for admin");
+            var users = await _userProfileService.GetAllProfilesAsync(email);
+
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 200,
+                Headers = CorsHeaders(),
+                Body = JsonSerializer.Serialize(users)
+            };
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogLine($"Error fetching users: {ex.Message}");
+            return new APIGatewayProxyResponse { StatusCode = 500, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Failed to fetch users" }) };
+        }
+    }
+
+    private async Task<APIGatewayProxyResponse> HandleUpdateUserStatus(
+        APIGatewayProxyRequest request,
+        JwtClaims claims,
+        ILambdaContext context
+    )
+    {
+        try
+        {
+            if (!claims.IsAdmin)
+            {
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 403,
+                    Headers = CorsHeaders(),
+                    Body = JsonSerializer.Serialize(new { message = "Forbidden" })
+                };
+            }
+
+            var userId = request.Path.Split('/').LastOrDefault();
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return new APIGatewayProxyResponse { StatusCode = 400, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Missing user id" }) };
+            }
+
+            if (string.IsNullOrEmpty(request.Body))
+            {
+                return new APIGatewayProxyResponse { StatusCode = 400, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Missing request body" }) };
+            }
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var payload = JsonSerializer.Deserialize<UpdateUserStatusRequestDto>(request.Body, options);
+            if (payload == null)
+            {
+                return new APIGatewayProxyResponse { StatusCode = 400, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Invalid request body format" }) };
+            }
+
+            var updated = await _userProfileService.SetUserStatusAsync(userId, payload.Status);
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 200,
+                Headers = CorsHeaders(),
+                Body = JsonSerializer.Serialize(updated)
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new APIGatewayProxyResponse { StatusCode = 404, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = ex.Message }) };
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogLine($"Error updating user status: {ex.Message}");
+            return new APIGatewayProxyResponse { StatusCode = 500, Headers = CorsHeaders(), Body = JsonSerializer.Serialize(new { message = "Failed to update user status" }) };
+        }
+    }
+
     /// <summary>
     /// Handle GET /profile/avatar-upload-url - Generate S3 Presigned URL for Avatar upload
     /// </summary>
@@ -302,7 +437,18 @@ public class Function
             claims.TryGetValue("sub", out var userId);
             claims.TryGetValue("email", out var email);
             claims.TryGetValue("name", out var fullName);
+            claims.TryGetValue("cognito:username", out var username);
             claims.TryGetValue("cognito:groups", out var groupsRaw);
+
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                claims.TryGetValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", out fullName);
+            }
+
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                fullName = username ?? string.Empty;
+            }
 
             // Cognito trả "cognito:groups" dạng chuỗi "[Admins]" hoặc
             // "[Admins, Organizers]" (không phải JSON array thật).

@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PublicLayout } from "../../components/layout/PublicLayout";
 import { cognitoAuthService } from "../../services/cognitoAuthService";
-import { useAuth } from "../../context/AuthContext";
 
 export const ConfirmRegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { checkAuth } = useAuth();
 
   const defaultEmail = location.state?.email || "";
 
@@ -32,14 +30,17 @@ export const ConfirmRegisterPage: React.FC = () => {
 
       await cognitoAuthService.confirmRegister(email, code);
 
-      setSuccessMessage("Xác thực tài khoản thành công! Đang chuyển hướng...");
-
-      // Cập nhật auth context
-      await checkAuth();
+      setSuccessMessage("Xác thực tài khoản thành công! Đang chuyển hướng về trang đăng nhập...");
 
       setTimeout(() => {
-        navigate("/");
-      }, 2000);
+        navigate("/login", {
+          state: {
+            email,
+            verified: true,
+          },
+          replace: true,
+        });
+      }, 1000);
     } catch (error) {
       console.error(error);
       setErrorMessage("Xác thực thất bại. Vui lòng kiểm tra lại mã OTP.");

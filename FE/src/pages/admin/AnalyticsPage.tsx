@@ -161,6 +161,10 @@ export const AnalyticsPage: React.FC = () => {
                 <p className="text-xs text-slate-500 uppercase font-semibold">Đã xác nhận</p>
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{eventAnalytics.confirmedCount}</p>
               </div>
+              {/* <div className="bg-slate-50 rounded-xl p-4 text-center">
+                <p className="text-xs text-slate-500 uppercase font-semibold">Danh sách chờ</p>
+                <p className="text-2xl font-bold text-orange-600 mt-1">{eventAnalytics.waitingCount}</p>
+              </div> */}
               <div className="bg-slate-50 rounded-xl p-4 text-center">
                 <p className="text-xs text-slate-500 uppercase font-semibold">Đã tham dự</p>
                 <p className="text-2xl font-bold text-amber-600 mt-1">{eventAnalytics.checkInCount}</p>
