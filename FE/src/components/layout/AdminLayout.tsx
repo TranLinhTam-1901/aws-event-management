@@ -19,7 +19,7 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
   // Các danh mục menu của Admin để map tự động
 
   const menuItems = [
-  { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
+  // { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
   { text: "Thống kê & Phân tích", icon: "analytics", path: "/admin/analytics" },
   { text: "Quản lý sự kiện", icon: "calendar_month", path: "/admin/events" },
   { text: "Danh mục", icon: "category", path: "/admin/categories" },
@@ -82,9 +82,9 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
           <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
             <span>Trang quản trị</span>
             <span>/</span>
-            <span className="text-slate-800 capitalize">
+            {/* <span className="text-slate-800 capitalize">
               {location.pathname.split("/").pop() || "Dashboard"}
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center gap-4">
