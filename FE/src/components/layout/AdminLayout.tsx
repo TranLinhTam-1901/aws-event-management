@@ -19,7 +19,6 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
   // Các danh mục menu của Admin để map tự động
 
   const menuItems = [
-  // { text: "Thống kê chung", icon: "dashboard", path: "/admin/dashboard" },
   { text: "Thống kê & Phân tích", icon: "analytics", path: "/admin/analytics" },
   { text: "Quản lý sự kiện", icon: "calendar_month", path: "/admin/events" },
   { text: "Danh mục", icon: "category", path: "/admin/categories" },

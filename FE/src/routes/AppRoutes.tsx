@@ -14,7 +14,6 @@ import { ConfirmRegisterPage } from "../pages/auth/ConfirmRegisterPage";
 import { MyTicketsPage } from "../pages/user/MyTicketsPage";
 
 import { AdminLayout } from "../components/layout/AdminLayout";
-import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage";
 import { EventManagementPage } from "../pages/admin/EventManagementPage";
 import { UserProfilePage } from "../pages/user/UserProfilePage";
 import { CheckInPage } from "../pages/admin/CheckInPage";
@@ -78,13 +77,12 @@ function AppRoutes() {
             />
             <Route
               path="/admin"
-              element={<Navigate to="/admin/dashboard" replace />}
+              element={<Navigate to="/admin/analytics" replace />}
             />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/analytics" element={<AnalyticsPage />} /> 
           <Route path="/admin/check-in" element={<CheckInPage />} />
 
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/analytics" replace />} />
           </Route>
         </Route>
 

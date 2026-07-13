@@ -73,7 +73,6 @@ export const AnalyticsPage: React.FC = () => {
     { title: "Tổng số sự kiện", value: overview?.totalEvents, icon: "calendar_month", color: "bg-blue-500" },
     { title: "Vé đã phát hành", value: overview?.totalRegistrations, icon: "confirmation_number", color: "bg-emerald-500" },
     { title: "Đã xác nhận", value: overview?.confirmedRegistrations, icon: "check_circle", color: "bg-teal-500" },
-    // { title: "Danh sách chờ", value: overview?.waitingRegistrations, icon: "hourglass_top", color: "bg-orange-500" },
     { title: "Người tham gia", value: overview?.totalCheckIns, icon: "groups", color: "bg-amber-500" },
     { title: "Tỷ lệ tham dự", value: overview ? `${overview.averageAttendanceRate}%` : undefined, icon: "trending_up", color: "bg-cyan-500" },
     { title: "Chứng chỉ đã cấp", value: overview?.certificatesIssuedCount, icon: "workspace_premium", color: "bg-indigo-500" },
