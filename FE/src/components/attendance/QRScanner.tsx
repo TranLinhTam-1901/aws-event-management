@@ -10,9 +10,6 @@ type QRScannerProps = {
 export const QRScanner: React.FC<QRScannerProps> = ({
     onScanSuccess,
 }) => {
-    const scannerRef =
-        useRef<Html5QrcodeScanner | null>(null);
-
     const scannedRef = useRef(false);
     const onScanSuccessRef = useRef(onScanSuccess);
 
@@ -21,9 +18,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
     }, [onScanSuccess]);
 
     useEffect(() => {
-        if (scannerRef.current) {
-            return;
-        }
+        let disposed = false;
 
         const scanner = new Html5QrcodeScanner(
             "qr-reader",
@@ -39,7 +34,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
 
         scanner.render(
             async (decodedText) => {
-                if (scannedRef.current) {
+                if (disposed || scannedRef.current) {
                     return;
                 }
 
@@ -49,10 +44,17 @@ export const QRScanner: React.FC<QRScannerProps> = ({
                     return;
                 }
 
+                console.log("[QR SUCCESS]", ticketId);
+
                 scannedRef.current = true;
 
                 try {
                     await onScanSuccessRef.current(ticketId);
+                } catch (error) {
+                    console.error(
+                        "[QR CHECK-IN ERROR]",
+                        error
+                    );
                 } finally {
                     window.setTimeout(() => {
                         scannedRef.current = false;
@@ -60,23 +62,26 @@ export const QRScanner: React.FC<QRScannerProps> = ({
                 }
             },
             () => {
-                // Không hiển thị lỗi khi camera chưa bắt được QR.
+                // Không log lỗi mỗi frame khi chưa nhận được QR.
             }
         );
 
-        scannerRef.current = scanner;
-
         return () => {
-            scanner
-                .clear()
-                .catch((error) =>
-                    console.error(
-                        "Không thể dừng QR scanner:",
-                        error
-                    )
-                );
+            disposed = true;
 
-            scannerRef.current = null;
+            const container =
+                document.getElementById("qr-reader");
+
+            if (!container) {
+                return;
+            }
+
+            scanner.clear().catch((error) => {
+                console.warn(
+                    "Scanner đã được dọn trước đó:",
+                    error
+                );
+            });
         };
     }, []);
 
