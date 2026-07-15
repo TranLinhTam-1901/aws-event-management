@@ -33,15 +33,15 @@ export const EventList: React.FC<Props> = ({ variant = 'public' }) => {
   }, [variant]);
 
   if (loading) {
-    return <div>Loading events...</div>;
+    return <div>Đang tải sự kiện...</div>;
   }
 
   if (!events.length) {
     return (
       <div>
         {variant === 'admin'
-          ? 'No events yet.'
-          : 'No events available.'}
+          ? 'Chưa có sự kiện nào.'
+          : 'Hiện chưa có sự kiện nào.'}
       </div>
     );
   }

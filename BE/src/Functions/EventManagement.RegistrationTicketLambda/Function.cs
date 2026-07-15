@@ -289,6 +289,15 @@ public class Function
             claims.TryGetValue("email", out var email);
             claims.TryGetValue("name", out var fullName);
 
+            var safeFullName = !string.IsNullOrWhiteSpace(fullName)
+                ? fullName
+                : email;
+
+            if (!string.IsNullOrWhiteSpace(safeFullName) && safeFullName.StartsWith("Google_", StringComparison.OrdinalIgnoreCase))
+            {
+                safeFullName = email ?? string.Empty;
+            }
+
             var groups = new List<string>();
             if (claims.TryGetValue("cognito:groups", out var groupsObj) && groupsObj != null)
             {
@@ -309,7 +318,7 @@ public class Function
             {
                 UserId = userId,
                 Email = email ?? string.Empty,
-                FullName = fullName ?? string.Empty,
+                FullName = safeFullName ?? string.Empty,
                 Groups = groups
             };
         }

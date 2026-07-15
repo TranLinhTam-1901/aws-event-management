@@ -137,6 +137,12 @@ Resources:
             Path: /admin/categories/{categoryId}
             Method: put
 
+        PatchCategory:
+          Type: Api
+          Properties:
+            Path: /admin/categories/{categoryId}
+            Method: patch
+
         DeleteCategory:
           Type: Api
           Properties:
@@ -188,6 +194,18 @@ Resources:
           Properties:
             Path: /profile/avatar-upload-url
             Method: get
+
+        GetAdminUsers:
+          Type: Api
+          Properties:
+            Path: /admin/users
+            Method: get
+
+        UpdateAdminUserStatus:
+          Type: Api
+          Properties:
+            Path: /admin/users/{userId}
+            Method: patch
 
   TicketFunction:
     Type: AWS::Serverless::Function
@@ -251,8 +269,8 @@ Resources:
       CodeUri: src/Functions/EventManagement.AttendanceCertificateLambda/
       Handler: EventManagement.AttendanceCertificateLambda::EventManagement.AttendanceCertificateLambda.Function::FunctionHandler
       Runtime: dotnet8
-      MemorySize: 256
-      Timeout: 30
+      MemorySize: 512
+      Timeout: 60
       Environment:
         Variables:
           SES_FROM_EMAIL: khacanh204@gmail.com
@@ -271,6 +289,7 @@ Resources:
               Action:
                 - ses:SendEmail
                 - ses:SendRawEmail
+                - sesv2:SendEmail
               Resource: "*"
       Events:
         CheckInTicket:
@@ -294,6 +313,12 @@ Resources:
             Method: get
             Auth:
               Authorizer: NONE
+        GetEventAttendees:
+          Type: Api
+          Properties:
+            Path: /admin/events/{eventId}/attendees
+            Method: get
+            # Uses default CognitoAuthorizer from Globals — admin must be authenticated
             
   EventManagementUserAvatarsBucket:
     Type: AWS::S3::Bucket
@@ -399,28 +424,38 @@ Resources:
               - '*'
             MaxAge: 3000
 
-  # 2. Bảng lưu trữ Vé tham gia sự kiện (Có kèm GSI để tìm vé theo UserId)
   EventManagementTicketsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: EventManagementTickets
       BillingMode: PAY_PER_REQUEST
+
       AttributeDefinitions:
         - AttributeName: TicketId
-          AttributeType: S # Khóa chính của bảng vé
+          AttributeType: S
         - AttributeName: UserId
-          AttributeType: S # Khóa dùng cho chỉ mục phụ GSI
+          AttributeType: S
+        - AttributeName: EventId
+          AttributeType: S
+
       KeySchema:
         - AttributeName: TicketId
           KeyType: HASH
-      # Khởi tạo Global Secondary Index (GSI) để phục vụ hàm tìm kiếm Vé theo UserId của ông
+
       GlobalSecondaryIndexes:
         - IndexName: UserTicketsIndex
           KeySchema:
             - AttributeName: UserId
               KeyType: HASH
           Projection:
-            ProjectionType: ALL # Lấy toàn bộ thuộc tính phẳng qua Index phục vụ mapping DTO nhanh
+            ProjectionType: ALL
+
+        - IndexName: EventTicketsIndex
+          KeySchema:
+            - AttributeName: EventId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   EventManagementUsersTable:
     Type: AWS::DynamoDB::Table

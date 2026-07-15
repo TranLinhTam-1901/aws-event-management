@@ -23,6 +23,7 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
   { text: "Quản lý sự kiện", icon: "calendar_month", path: "/admin/events" },
   { text: "Danh mục", icon: "category", path: "/admin/categories" },
   { text: "Check-in QR", icon: "qr_code_scanner", path: "/admin/check-in" },
+  { text: "Người dùng", icon: "group", path: "/admin/users" },
 ];
   return (
     <div className="min-h-screen bg-slate-100 font-inter flex">
@@ -68,7 +69,7 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">{user?.fullName || "Quản trị viên"}</p>
-            <p className="text-xs text-slate-500 truncate">Role: ADMIN ({user?.role})</p>
+            {/* <p className="text-xs text-slate-500 truncate">Role: ADMIN ({user?.role})</p> */}
           </div>
         </div>
       </aside>
@@ -81,20 +82,20 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
           <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
             <span>Trang quản trị</span>
             <span>/</span>
-            <span className="text-slate-800 capitalize">
+            {/* <span className="text-slate-800 capitalize">
               {location.pathname.split("/").pop() || "Dashboard"}
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center gap-4">
             {/* Nút quay lại màn hình User xem giao diện */}
-            <button
+            {/* <button
               onClick={() => navigate("/")}
               className="text-xs font-medium text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-base">desktop_windows</span>
               Xem trang chủ User
-            </button>
+            </button> */}
 
             {/* Nút đăng xuất của hệ thống */}
             <button

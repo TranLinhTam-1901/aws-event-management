@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from 'react-hot-toast';
 
 import { Header } from "../../components/layout/Header";
 import { Footer } from "../../components/layout/Footer";
@@ -43,7 +44,9 @@ export const MyCertificatesPage: React.FC = () => {
             console.error(error);
 
             if (axios.isAxiosError(error)) {
-                alert(error.response?.data?.message);
+                toast.error(error.response?.data?.message || 'Không thể tải chứng chỉ.');
+            } else {
+                toast.error('Không thể tải chứng chỉ.');
             }
         }
     };
@@ -104,7 +107,7 @@ export const MyCertificatesPage: React.FC = () => {
 
                             <div
                                 key={ticket.ticketId}
-                                className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-lg transition"
+                                className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-lg transition flex flex-col h-full"
                             >
 
                                 <div className="flex items-center justify-between">
@@ -123,7 +126,7 @@ export const MyCertificatesPage: React.FC = () => {
                                     {ticket.eventTitle}
                                 </h2>
 
-                                <div className="mt-5 space-y-2 text-sm text-slate-600">
+                                <div className="mt-5 space-y-2 text-sm text-slate-600 flex-1">
 
                                     <p>
                                         📍 {ticket.eventLocation}
