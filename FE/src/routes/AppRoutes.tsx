@@ -14,7 +14,6 @@ import { ConfirmRegisterPage } from "../pages/auth/ConfirmRegisterPage";
 import { MyTicketsPage } from "../pages/user/MyTicketsPage";
 
 import { AdminLayout } from "../components/layout/AdminLayout";
-import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage";
 import { EventManagementPage } from "../pages/admin/EventManagementPage";
 import { UserProfilePage } from "../pages/user/UserProfilePage";
 import { CheckInPage } from "../pages/admin/CheckInPage";
@@ -22,6 +21,7 @@ import { CheckInPage } from "../pages/admin/CheckInPage";
 import { EventCreatePage } from "../pages/admin/EventCreatePage";
 import { EventEditPage } from "../pages/admin/EventEditPage";
 import { CategoryManagementPage } from "../pages/admin/CategoryManagementPage";
+import { UserManagementPage } from "../pages/admin/UserManagementPage";
 import { EventListPage } from "../pages/public/EventListPage";
 import { EventDetailPage } from "../pages/public/EventDetailPage";
 import { MyCertificatesPage } from "../pages/user/MyCertificatesPage";
@@ -77,14 +77,17 @@ function AppRoutes() {
               element={<CategoryManagementPage />}
             />
             <Route
-              path="/admin"
-              element={<Navigate to="/admin/dashboard" replace />}
+              path="/admin/users"
+              element={<UserManagementPage />}
             />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route
+              path="/admin"
+              element={<Navigate to="/admin/analytics" replace />}
+            />
           <Route path="/admin/analytics" element={<AnalyticsPage />} /> 
           <Route path="/admin/check-in" element={<CheckInPage />} />
 
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/analytics" replace />} />
           </Route>
         </Route>
 

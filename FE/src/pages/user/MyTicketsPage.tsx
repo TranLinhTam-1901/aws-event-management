@@ -169,11 +169,11 @@ export const MyTicketsPage: React.FC = () => {
                             />
                         </div>
 
-                        <p className="mt-4 text-xs text-slate-500 break-all">
+                        {/* <p className="mt-4 text-xs text-slate-500 break-all">
                             Ticket ID:
                             <br />
                             <b className="text-slate-800">{selectedTicketId}</b>
-                        </p>
+                        </p> */}
 
                         <a
                             href={selectedQr}
@@ -308,7 +308,7 @@ export const MyTicketsPage: React.FC = () => {
                                                         </span>
                                                     </p>
 
-                                                    <p className="flex items-center gap-2">
+                                                    {/* <p className="flex items-center gap-2">
                                                         <span className="material-symbols-outlined text-base text-slate-400">
                                                             fingerprint
                                                         </span>
@@ -316,7 +316,7 @@ export const MyTicketsPage: React.FC = () => {
                                                         <span className="font-mono text-slate-700">
                                                             {ticket.ticketId.substring(0, 8)}...
                                                         </span>
-                                                    </p>
+                                                    </p> */}
 
                                                     <p className="flex items-center gap-2">
                                                         <span className="material-symbols-outlined text-base text-slate-400">
@@ -333,9 +333,9 @@ export const MyTicketsPage: React.FC = () => {
                                             </div>
 
                                             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                                                <span className="font-mono text-[10px]">
+                                                {/* <span className="font-mono text-[10px]">
                                                     EVENT ID: {ticket.eventId}
-                                                </span>
+                                                </span> */}
 
                                                 <div className="flex items-center gap-3">
                                                     {ticket.status === "CHECKED_IN" && (

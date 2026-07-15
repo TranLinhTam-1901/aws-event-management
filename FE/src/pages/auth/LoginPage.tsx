@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PublicLayout } from "../../components/layout/PublicLayout";
 import { useAuth } from "../../context/AuthContext";
 import { signInWithRedirect } from "aws-amplify/auth";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +16,25 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const { user, isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    const storedBlockedMessage = sessionStorage.getItem("blocked_account_message");
+    if (storedBlockedMessage) {
+      setErrorMessage(storedBlockedMessage);
+      sessionStorage.removeItem("blocked_account_message");
+    }
+
+    if (location.state?.verified) {
+      const verifiedEmail = location.state?.email || "";
+      setSuccessMessage(
+        verifiedEmail
+          ? `Xác thực tài khoản thành công cho ${verifiedEmail}. Bạn có thể đăng nhập ngay.`
+          : "Xác thực tài khoản thành công. Bạn có thể đăng nhập ngay."
+      );
+    }
+  }, [location.state]);
 
   useEffect(() => {
     // Nếu hệ thống đã check auth xong (isLoading === false) và xác nhận đã login
@@ -23,7 +42,7 @@ export const LoginPage: React.FC = () => {
       console.log("User đã login, tự động đá ra khỏi trang login. Role:", user.role);
       
       if (user.role === 1) {
-        navigate("/admin/dashboard", { replace: true });
+        navigate("/admin/analytics", { replace: true });
       } else {
         navigate("/", { replace: true });
       }
@@ -47,7 +66,11 @@ export const LoginPage: React.FC = () => {
 
     } catch (error) {
       console.error("Login error:", error);
-      setErrorMessage("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");
+      if (error instanceof Error && error.message === "ACCOUNT_BLOCKED") {
+        setErrorMessage("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ qua email admin@eventmanagement.com để được mở lại.");
+      } else {
+        setErrorMessage("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");
+      }
     } finally {
       setLoading(false);
     }
@@ -89,6 +112,12 @@ export const LoginPage: React.FC = () => {
             {errorMessage && (
               <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
                 {errorMessage}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-600">
+                {successMessage}
               </div>
             )}
 

@@ -5,6 +5,7 @@ import App from './App.tsx'
 import { Amplify } from "aws-amplify";
 import { type KeyValueStorageInterface } from 'aws-amplify/utils'; // Interface quản lý storage từ Amplify
 import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
+import { Toaster } from 'react-hot-toast';
 
 
 // 1. Định nghĩa Custom Storage quản lý động cơ chế Remember Me
@@ -62,5 +63,6 @@ cognitoUserPoolsTokenProvider.setKeyValueStorage(dynamicAuthStorage);
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
+    <Toaster position="top-right" reverseOrder={false} />
   </StrictMode>,
 )

@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import { AppButton } from '../common/AppButton';
 
 interface Props {
@@ -24,13 +25,13 @@ export const EventBannerUpload: React.FC<Props> = ({
     }
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      alert('Only JPG, PNG, or WEBP images are allowed.');
+      toast.error('Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP.');
       e.target.value = '';
       return;
     }
 
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      alert(`Image size must not exceed ${MAX_SIZE_MB}MB.`);
+      toast.error(`Kích thước ảnh không được vượt quá ${MAX_SIZE_MB}MB.`);
       e.target.value = '';
       return;
     }
@@ -74,14 +75,14 @@ export const EventBannerUpload: React.FC<Props> = ({
                 variant="secondary"
                 onClick={handleChooseFile}
               >
-                Choose Another Image
+                Chọn ảnh
               </AppButton>
               <AppButton
                 type="button"
                 variant="secondary"
                 onClick={handleRemove}
               >
-                Remove Image
+                Xóa ảnh
               </AppButton>
             </div>
           )}

@@ -73,7 +73,6 @@ export const AnalyticsPage: React.FC = () => {
     { title: "Tổng số sự kiện", value: overview?.totalEvents, icon: "calendar_month", color: "bg-blue-500" },
     { title: "Vé đã phát hành", value: overview?.totalRegistrations, icon: "confirmation_number", color: "bg-emerald-500" },
     { title: "Đã xác nhận", value: overview?.confirmedRegistrations, icon: "check_circle", color: "bg-teal-500" },
-    { title: "Danh sách chờ", value: overview?.waitingRegistrations, icon: "hourglass_top", color: "bg-orange-500" },
     { title: "Người tham gia", value: overview?.totalCheckIns, icon: "groups", color: "bg-amber-500" },
     { title: "Tỷ lệ tham dự", value: overview ? `${overview.averageAttendanceRate}%` : undefined, icon: "trending_up", color: "bg-cyan-500" },
     { title: "Chứng chỉ đã cấp", value: overview?.certificatesIssuedCount, icon: "workspace_premium", color: "bg-indigo-500" },
@@ -162,10 +161,10 @@ export const AnalyticsPage: React.FC = () => {
                 <p className="text-xs text-slate-500 uppercase font-semibold">Đã xác nhận</p>
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{eventAnalytics.confirmedCount}</p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-4 text-center">
+              {/* <div className="bg-slate-50 rounded-xl p-4 text-center">
                 <p className="text-xs text-slate-500 uppercase font-semibold">Danh sách chờ</p>
                 <p className="text-2xl font-bold text-orange-600 mt-1">{eventAnalytics.waitingCount}</p>
-              </div>
+              </div> */}
               <div className="bg-slate-50 rounded-xl p-4 text-center">
                 <p className="text-xs text-slate-500 uppercase font-semibold">Đã tham dự</p>
                 <p className="text-2xl font-bold text-amber-600 mt-1">{eventAnalytics.checkInCount}</p>
