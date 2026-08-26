@@ -440,14 +440,13 @@ public class Function
             claims.TryGetValue("cognito:username", out var username);
             claims.TryGetValue("cognito:groups", out var groupsRaw);
 
-            if (string.IsNullOrWhiteSpace(fullName))
-            {
-                claims.TryGetValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", out fullName);
-            }
+            var safeFullName = !string.IsNullOrWhiteSpace(fullName)
+                ? fullName
+                : email;
 
-            if (string.IsNullOrWhiteSpace(fullName))
+            if (!string.IsNullOrWhiteSpace(safeFullName) && safeFullName.StartsWith("Google_", StringComparison.OrdinalIgnoreCase))
             {
-                fullName = username ?? string.Empty;
+                safeFullName = email ?? string.Empty;
             }
 
             // Cognito trả "cognito:groups" dạng chuỗi "[Admins]" hoặc
@@ -474,7 +473,7 @@ public class Function
             {
                 UserId = userId,
                 Email = email ?? string.Empty,
-                FullName = fullName ?? string.Empty,
+                FullName = safeFullName ?? string.Empty,
                 Groups = groups
             };
         }

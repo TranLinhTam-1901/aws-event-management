@@ -53,6 +53,8 @@ export const QRScanner: React.FC<QRScannerProps> = ({
 
                 try {
                     await onScanSuccessRef.current(ticketId);
+                } catch (error) {
+                    console.error("QR scan handling error:", error);
                 } finally {
                     window.setTimeout(() => {
                         scannedRef.current = false;
@@ -60,23 +62,26 @@ export const QRScanner: React.FC<QRScannerProps> = ({
                 }
             },
             () => {
-                // Không hiển thị lỗi khi camera chưa bắt được QR.
+                // Bỏ qua lỗi quét liên tục khi camera chưa nhận diện được QR.
             }
         );
 
         scannerRef.current = scanner;
 
         return () => {
-            scanner
-                .clear()
-                .catch((error) =>
-                    console.error(
-                        "Không thể dừng QR scanner:",
-                        error
-                    )
-                );
+            const currentScanner = scannerRef.current;
 
             scannerRef.current = null;
+            scannedRef.current = false;
+
+            if (currentScanner) {
+                currentScanner.clear().catch((error) => {
+                    console.warn(
+                        "Không thể dừng QR scanner:",
+                        error
+                    );
+                });
+            }
         };
     }, []);
 

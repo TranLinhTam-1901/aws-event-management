@@ -39,7 +39,7 @@ const dynamicAuthStorage: KeyValueStorageInterface = {
   }
 };
 
-cognitoUserPoolsTokenProvider.setKeyValueStorage(dynamicAuthStorage);
+
 
 Amplify.configure({
   Auth: {
@@ -58,6 +58,7 @@ Amplify.configure({
     },
   },
 });
+cognitoUserPoolsTokenProvider.setKeyValueStorage(dynamicAuthStorage);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -128,7 +128,7 @@ public class Function
             _ => EmailTemplateBuilder.BuildRegistrationConfirmed(
                 eventDto.FullName,
                 eventDto.Data.GetValueOrDefault("EventTitle", ""),
-                eventDto.Data.GetValueOrDefault("StartTime", ""),
+                ConvertToVietnamTime(eventDto.Data.GetValueOrDefault("StartTime", "")),
                 eventDto.Data.GetValueOrDefault("Location", ""))
         };
 
@@ -168,7 +168,7 @@ public class Function
             foreach (var ticket in tickets)
             {
                 var (subject, body) = EmailTemplateBuilder.BuildEventReminder(
-                    ticket.UserFullName, evt.Title, evt.StartTime, evt.Location);
+    ticket.UserFullName, evt.Title, ConvertToVietnamTime(evt.StartTime), evt.Location);
 
                 var (success, errorMessage) = await _emailService.SendEmailAsync(
                     ticket.UserEmail, subject, body);
@@ -186,4 +186,13 @@ public class Function
             }
         }
     }
+    private static string ConvertToVietnamTime(string utcTimeStr)
+{
+    if (DateTime.TryParse(utcTimeStr, out var utcTime))
+    {
+        var vnTime = utcTime.ToUniversalTime().AddHours(7);
+        return vnTime.ToString("dd/MM/yyyy HH:mm") + " (GMT+7)";
+    }
+    return utcTimeStr;
+}
 }

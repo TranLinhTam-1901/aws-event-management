@@ -60,6 +60,16 @@ public class UserProfileService : IUserProfileService
         existingProfile.LastLoginAt = now;
         existingProfile.Role = role;
 
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            existingProfile.FullName = fullName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            existingProfile.Email = email;
+        }
+
         return new InitProfileResponseDto
         {
             IsNewUser = false,
