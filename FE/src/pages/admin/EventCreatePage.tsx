@@ -1,14 +1,15 @@
-import React from 'react';
-import { AdminLayout } from '../../components/layout/AdminLayout';
-import { EventForm } from '../../components/events/EventForm';
+import React from "react";
+import { EventForm } from "../../components/events/EventForm";
 
 export const EventCreatePage: React.FC = () => {
-  return (
-    <AdminLayout>
-      <h1 className="text-3xl font-bold mb-8">Create Event</h1>
-      <div className="max-w-2xl">
-        <EventForm />
-      </div>
-    </AdminLayout>
-  );
+    return (
+        <div className="flex justify-center px-4 py-6">
+            <div className="w-full max-w-5xl">
+                <h1 className="text-3xl font-bold mb-8 text-center">
+                    Tạo sự kiện
+                </h1>
+                <EventForm />
+            </div>
+        </div>
+    );
 };

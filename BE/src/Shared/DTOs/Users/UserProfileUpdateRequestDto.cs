@@ -1,9 +1,7 @@
-namespace EventManagement.Shared.DTOs.Users
+namespace EventManagement.Shared.DTOs.Users;
+
+public class UpdateProfileRequestDto
 {
-    public class UserProfileUpdateRequestDto
-    {
-        public string FullName { get; set; }
-        public string Phone { get; set; }
-        public string Organization { get; set; }
-    }
+    public string FullName { get; set; } = string.Empty;
+    public string AvatarUrl { get; set; } = string.Empty;
 }

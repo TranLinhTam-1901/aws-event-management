@@ -1,0 +1,266 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Event Management Local API
+Parameters:
+  CognitoUserPoolIdParam:
+    Type: String
+    Description: "ID c\u1EE7a Cognito User Pool"
+    Default: YOUR_COGNITO_USER_POOL_ID_PLACEHOLDER
+Globals:
+  Api:
+    Cors:
+      AllowMethods: '''GET,POST,PUT,DELETE,OPTIONS'''
+      AllowHeaders: '''Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'''
+      AllowOrigin: '''*'''
+    Auth:
+      DefaultAuthorizer: CognitoAuthorizer
+      AddDefaultAuthorizerToCorsPreflight: false
+      Authorizers:
+        CognitoAuthorizer:
+          UserPoolArn:
+            Fn::Sub: arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolIdParam}
+Resources:
+  EventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventLambda
+      CodeUri: s3://aws-event-management-sam-artifacts-thuky-2026/746f6d8ebcac947ffc3cfab76a438970
+      Handler: EventManagement.EventLambda::EventManagement.EventLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          EVENT_TABLE_NAME:
+            Ref: EventManagementEventsTable
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EventManagementEventsTable
+      Events:
+        GetEvents:
+          Type: Api
+          Properties:
+            Path: /events
+            Method: get
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      SamResourceId: EventFunction
+  UserProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UserProfileLambda
+      CodeUri: s3://aws-event-management-sam-artifacts-thuky-2026/73c1f089d20d1211ebbd2d42f039282d
+      Handler: EventManagement.UserProfileLambda::EventManagement.UserProfileLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          USER_TABLE_NAME: EventManagementUsers
+          AVATAR_BUCKET_NAME:
+            Ref: EventManagementUserAvatarsBucket
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: EventManagementUsers
+      - S3CrudPolicy:
+          BucketName:
+            Ref: EventManagementUserAvatarsBucket
+      Events:
+        InitProfile:
+          Type: Api
+          Properties:
+            Path: /profile/init
+            Method: post
+        GetProfile:
+          Type: Api
+          Properties:
+            Path: /profile/me
+            Method: get
+        UpdateProfile:
+          Type: Api
+          Properties:
+            Path: /profile/me
+            Method: put
+        GetAvatarUploadUrl:
+          Type: Api
+          Properties:
+            Path: /profile/avatar-upload-url
+            Method: get
+    Metadata:
+      SamResourceId: UserProfileFunction
+  TicketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TicketLambda
+      CodeUri: s3://aws-event-management-sam-artifacts-thuky-2026/bb74c8c1b5ad9dd5e0a7ebcd3d59d505
+      Handler: EventManagement.RegistrationTicketLambda::EventManagement.RegistrationTicketLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          TICKET_TABLE_NAME:
+            Ref: EventManagementTicketsTable
+          EVENT_TABLE_NAME:
+            Ref: EventManagementEventsTable
+          USER_TABLE_NAME: EventManagementUsers
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EventManagementEventsTable
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EventManagementTicketsTable
+      - Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          Resource:
+            Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventManagementUsers
+      Events:
+        RegisterTicket:
+          Type: Api
+          Properties:
+            Path: /events/{eventId}/register
+            Method: post
+        GetMyTickets:
+          Type: Api
+          Properties:
+            Path: /my-tickets
+            Method: get
+    Metadata:
+      SamResourceId: TicketFunction
+  AttendanceCertificateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AttendanceCertificateLambda
+      CodeUri: s3://aws-event-management-sam-artifacts-thuky-2026/0e215d16b52bcf1b5a4dd10b9c66e8b5
+      Handler: EventManagement.AttendanceCertificateLambda::EventManagement.AttendanceCertificateLambda.Function::FunctionHandler
+      Runtime: dotnet8
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          TICKET_TABLE_NAME:
+            Ref: EventManagementTicketsTable
+          ATTENDANCE_TABLE_NAME:
+            Ref: EventManagementAttendanceTable
+          CERTIFICATE_BUCKET_NAME:
+            Ref: EventManagementCertificatesBucket
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EventManagementTicketsTable
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EventManagementAttendanceTable
+      - S3CrudPolicy:
+          BucketName:
+            Ref: EventManagementCertificatesBucket
+      Events:
+        CheckInTicket:
+          Type: Api
+          Properties:
+            Path: /tickets/checkin
+            Method: post
+            Auth:
+              Authorizer: NONE
+        GetCertificatev2:
+          Type: Api
+          Properties:
+            Path: /certificates-v2/{ticketId}
+            Method: get
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      SamResourceId: AttendanceCertificateFunction
+  EventManagementUserAvatarsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: event-management-user-avatars-${AWS::AccountId}
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - PUT
+          - GET
+          AllowedOrigins:
+          - '*'
+          MaxAge: 3000
+    Metadata:
+      SamResourceId: EventManagementUserAvatarsBucket
+  EventManagementEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementEvents
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: EventId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: EventId
+        KeyType: HASH
+    Metadata:
+      SamResourceId: EventManagementEventsTable
+  EventManagementTicketsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementTickets
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: TicketId
+        AttributeType: S
+      - AttributeName: UserId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: TicketId
+        KeyType: HASH
+      GlobalSecondaryIndexes:
+      - IndexName: UserTicketsIndex
+        KeySchema:
+        - AttributeName: UserId
+          KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+    Metadata:
+      SamResourceId: EventManagementTicketsTable
+  EventManagementCertificatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: event-management-certificates-${AWS::AccountId}
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          AllowedOrigins:
+          - '*'
+          MaxAge: 3000
+    Metadata:
+      SamResourceId: EventManagementCertificatesBucket
+  EventManagementAttendanceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventManagementAttendance
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: EventId
+        AttributeType: S
+      - AttributeName: TicketId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: EventId
+        KeyType: HASH
+      - AttributeName: TicketId
+        KeyType: RANGE
+    Metadata:
+      SamResourceId: EventManagementAttendanceTable

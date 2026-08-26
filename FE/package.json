@@ -11,12 +11,15 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.5",
+    "@aws-amplify/ui-react": "^6.15.4",
     "@reduxjs/toolkit": "^2.12.0",
+    "@tailwindcss/vite": "^4.3.1",
     "antd": "^6.4.4",
     "aws-amplify": "^6.18.0",
     "axios": "^1.17.0",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.18.0",
+    "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
@@ -24,11 +27,13 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.17.0",
     "recharts": "^3.8.1",
-    "sweetalert2": "^11.26.25"
+    "sweetalert2": "^11.26.25",
+    "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.12.3",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

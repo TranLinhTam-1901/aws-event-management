@@ -7,6 +7,7 @@ interface AppButtonProps {
   disabled?: boolean;
   loading?: boolean;
   className?: string;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export const AppButton: React.FC<AppButtonProps> = ({
@@ -16,6 +17,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
   disabled = false,
   loading = false,
   className = '',
+  type = 'button',
 }) => {
   const baseClasses = 'px-4 py-2 rounded font-medium transition-colors';
   const variantClasses = {
@@ -26,6 +28,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled || loading}
       className={`${baseClasses} ${variantClasses[variant]} ${className}`}

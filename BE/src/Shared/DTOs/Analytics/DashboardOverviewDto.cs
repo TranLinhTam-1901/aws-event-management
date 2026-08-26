@@ -10,5 +10,6 @@ namespace EventManagement.Shared.DTOs.Analytics
         public double AverageAttendanceRate { get; set; }
         public int EmailSentCount { get; set; }
         public int EmailFailedCount { get; set; }
+        public int CertificatesIssuedCount { get; set; }
     }
 }
